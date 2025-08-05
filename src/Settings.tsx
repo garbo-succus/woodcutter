@@ -1,7 +1,10 @@
-import { MathUtils, Shape, Mesh } from "three";
-import { useState } from "react";
+import { MathUtils, Shape, Mesh, Box2, Vector2 } from "three";
+import { useState, useEffect } from "react";
+import { useEffectOnce } from "react-use";
+import { SVGLoader } from "three-stdlib";
 import ShapeSelector from "./ShapeSelector";
 import { exportGltf } from "./exportGltf";
+import { cleanupShape } from "./shapeCleanup";
 
 const colors = [
   { value: "#FFFFFF", name: "White" },
@@ -11,6 +14,98 @@ const colors = [
   { value: "#4B0082", name: "Purple" },
   { value: "#4169E1", name: "Blue" },
 ];
+
+// Function to auto-scale a shape so the largest dimension is 1
+function autoScaleShape(originalShape: Shape): Shape {
+  const points = originalShape.getPoints();
+  if (points.length === 0) return originalShape;
+
+  // Calculate bounding box
+  const box = new Box2();
+  points.forEach((point) => box.expandByPoint(point));
+
+  const size = box.getSize(new Vector2());
+  const maxDimension = Math.max(size.x, size.y);
+
+  if (maxDimension === 0) return originalShape;
+
+  const scale = 1 / maxDimension;
+  const center = box.getCenter(new Vector2());
+
+  // Create new scaled and centered shape
+  const scaledShape = new Shape();
+  if (points.length > 0) {
+    const firstPoint = points[0];
+    const scaledX = (firstPoint.x - center.x) * scale;
+    const scaledY = (firstPoint.y - center.y) * scale;
+    scaledShape.moveTo(scaledX, scaledY);
+
+    for (let i = 1; i < points.length; i++) {
+      const point = points[i];
+      const scaledX = (point.x - center.x) * scale;
+      const scaledY = (point.y - center.y) * scale;
+      scaledShape.lineTo(scaledX, scaledY);
+    }
+  }
+
+  return scaledShape;
+}
+
+// Function to convert SVG to Three.js Shape using SVGLoader
+function svgToShape(svgText: string): Shape | null {
+  try {
+    const loader = new SVGLoader();
+    const svgData = loader.parse(svgText);
+
+    // Get the first path from the SVG
+    if (svgData.paths && svgData.paths.length > 0) {
+      const path = svgData.paths[0];
+
+      // Convert the first shape from the path
+      const shapes = SVGLoader.createShapes(path);
+      if (shapes.length > 0) {
+        const rawShape = shapes[0];
+        // Center the imported shape
+        return centerShape(rawShape);
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error parsing SVG:", error);
+    return null;
+  }
+}
+
+// Function to center a shape around the origin
+function centerShape(originalShape: Shape): Shape {
+  const points = originalShape.getPoints();
+  if (points.length === 0) return originalShape;
+
+  // Calculate bounding box
+  const box = new Box2();
+  points.forEach((point) => box.expandByPoint(point));
+
+  const center = box.getCenter(new Vector2());
+
+  // Create new centered shape
+  const centeredShape = new Shape();
+  if (points.length > 0) {
+    const firstPoint = points[0];
+    const centeredX = firstPoint.x - center.x;
+    const centeredY = firstPoint.y - center.y;
+    centeredShape.moveTo(centeredX, centeredY);
+
+    for (let i = 1; i < points.length; i++) {
+      const point = points[i];
+      const centeredX = point.x - center.x;
+      const centeredY = point.y - center.y;
+      centeredShape.lineTo(centeredX, centeredY);
+    }
+  }
+
+  return centeredShape;
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const defaultSettings = {
@@ -23,6 +118,7 @@ export const defaultSettings = {
   bevelSegments: 4,
   maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
+  showBackgroundShape: true,
   cleanupMethod: 1,
   clearcoat: 0,
   clearcoatRoughness: 0.1,
@@ -40,6 +136,7 @@ export const defaultSettings = {
   specularIntensity: 1,
   specularColor: "#FFFFFF",
   thickness: 0,
+  reflectivity: 0.5,
   materialInputType: "range",
 };
 
@@ -98,6 +195,39 @@ function ShapeSection({
   onShapeChange,
 }: SectionProps & { shape: Shape; onShapeChange: (shape: Shape) => void }) {
   const [expanded, setExpanded] = useState(true);
+  const [svgPreview, setSvgPreview] = useState<string>("/star.svg");
+  const [originalShape, setOriginalShape] = useState<Shape | null>(null);
+
+  // Load initial star.svg on component mount by simulating file change
+  useEffectOnce(() => {
+    const loadInitialShape = async () => {
+      try {
+        const response = await fetch("/star.svg");
+        const svgText = await response.text();
+        const newShape = svgToShape(svgText);
+
+        if (newShape) {
+          setOriginalShape(newShape);
+          const cleanedShape = cleanupShape(newShape, settings.cleanupMethod);
+          const scaledShape = autoScaleShape(cleanedShape);
+          onShapeChange(scaledShape);
+        }
+      } catch (error) {
+        console.error("Error loading initial star.svg:", error);
+      }
+    };
+
+    loadInitialShape();
+  });
+
+  // Re-process original shape when cleanup method changes
+  useEffect(() => {
+    if (originalShape) {
+      const cleanedShape = cleanupShape(originalShape, settings.cleanupMethod);
+      const scaledShape = autoScaleShape(cleanedShape);
+      onShapeChange(scaledShape);
+    }
+  }, [settings.cleanupMethod, originalShape, onShapeChange]);
 
   return (
     <CollapsibleSection
@@ -110,6 +240,10 @@ function ShapeSection({
         shape={shape}
         onShapeChange={onShapeChange}
         cleanupMethod={settings.cleanupMethod}
+        svgPreview={svgPreview}
+        onSvgPreviewChange={setSvgPreview}
+        originalShape={originalShape}
+        onOriginalShapeChange={setOriginalShape}
       />
 
       <div className="field">
@@ -276,7 +410,7 @@ function SpecularSection({ settings, onSettingsChange }: SectionProps) {
         <input
           type={settings.materialInputType}
           min={0}
-          max={2}
+          max={1}
           step={0.05}
           value={settings.specularIntensity}
           onChange={(e) =>
@@ -520,6 +654,23 @@ function OtherSection({ settings, onSettingsChange }: SectionProps) {
           Angles below this appear smooth, above appear sharp.
         </div>
       </div>
+
+      <div className="field">
+        <label>Show Background:</label>
+        <input
+          type="checkbox"
+          checked={settings.showBackgroundShape}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              showBackgroundShape: e.target.checked,
+            })
+          }
+        />
+        <div className="description">
+          Shows a background underneath the model.
+        </div>
+      </div>
     </CollapsibleSection>
   );
 }
@@ -587,6 +738,26 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
           }
         />
         <div className="description">Gives the surface a metallic lustre.</div>
+      </div>
+
+      <div className="field">
+        <label>Reflectivity:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.reflectivity}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              reflectivity: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Controls the strength of reflections on the surface.
+        </div>
       </div>
 
       <ClearcoatSection

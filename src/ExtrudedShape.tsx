@@ -5,13 +5,7 @@ import { Shape, Mesh, ExtrudeGeometry, TextureLoader } from "three";
 import * as BufferGeometryUtils from "three-stdlib";
 import type { SettingsType } from "./Settings";
 
-interface ExtrudedShapeProps {
-  shape: Shape;
-  settings: SettingsType;
-  color: string;
-}
-
-const BackgroundShape = (props) => {
+const BackgroundShape = (props: React.ComponentProps<'group'>) => {
   return (
     <group {...props}>
       <mesh position={[-0.25, -0.05, 0]}>
@@ -25,6 +19,12 @@ const BackgroundShape = (props) => {
     </group>
   );
 };
+
+interface ExtrudedShapeProps {
+  shape: Shape;
+  settings: SettingsType;
+  color: string;
+}
 
 const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
   ({ shape, settings, color }, ref) => {
@@ -90,6 +90,7 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
               specularIntensity={settings.specularIntensity}
               specularColor={settings.specularColor}
               thickness={settings.thickness}
+              reflectivity={settings.reflectivity}
             />,
             // Material 1: Front/back face (end grain)
             <meshPhysicalMaterial
@@ -113,10 +114,13 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
               specularIntensity={settings.specularIntensity}
               specularColor={settings.specularColor}
               thickness={settings.thickness}
+              reflectivity={settings.reflectivity}
             />,
           ]}
         </mesh>
-        <BackgroundShape position={[0, -offset, 0]} />
+        {settings.showBackgroundShape && (
+          <BackgroundShape position={[0, -offset, 0]} />
+        )}
       </group>
     );
   },
