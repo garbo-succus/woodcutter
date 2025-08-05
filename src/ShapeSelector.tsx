@@ -139,6 +139,9 @@ export default function ShapeSelector({
 
   return (
     <>
+      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
+        <b>TODO:</b> Only the first shape in the SVG is used.
+      </div>
       <div className="field">
         <label>
           Shape image{" "}
@@ -169,9 +172,6 @@ export default function ShapeSelector({
             />
           </div>
         )}
-      </div>
-      <div style={{ fontSize: "12px", color: "darkred" }}>
-        <b>TODO:</b> Only the first shape in the SVG is used.
       </div>
     </>
   );

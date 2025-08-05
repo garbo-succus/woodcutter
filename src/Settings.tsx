@@ -1,5 +1,6 @@
-import { MathUtils, Shape, Mesh } from "three";
+import { MathUtils, Shape, Mesh, Box3, Vector3 } from "three";
 import { GLTFExporter } from "three-stdlib";
+import { useState } from "react";
 import ShapeSelector from "./ShapeSelector";
 
 interface GLTFResult {
@@ -24,9 +25,23 @@ const colors = [
 
 function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
+    const mesh = meshRef.current;
+
+    // Calculate the bounding box and scale factor
+    const box = new Box3().setFromObject(mesh);
+    const size = box.getSize(new Vector3());
+    const maxDimension = Math.max(size.x, size.y, size.z);
+
+    // Store original scale and apply scaling
+    const originalScale = mesh.scale.clone();
+    if (maxDimension > 0) {
+      const scaleFactor = 1 / maxDimension;
+      mesh.scale.multiplyScalar(scaleFactor);
+    }
+
     const exporter = new GLTFExporter();
     exporter.parse(
-      meshRef.current,
+      mesh,
       (gltf: ArrayBuffer | { [key: string]: unknown }) => {
         // With binary: false, gltf will always be an object, never ArrayBuffer
         const gltfObj = gltf as GLTFResult;
@@ -55,9 +70,14 @@ function exportGltf(meshRef: React.RefObject<Mesh>) {
         a.download = "star.gltf";
         a.click();
         URL.revokeObjectURL(url);
+
+        // Restore original scale
+        mesh.scale.copy(originalScale);
       },
       (error) => {
         console.error("Error exporting GLTF:", error);
+        // Restore original scale even on error
+        mesh.scale.copy(originalScale);
       },
       { binary: false },
     );
@@ -96,16 +116,49 @@ interface SectionProps {
   onSettingsChange: (settings: SettingsType) => void;
 }
 
+interface CollapsibleSectionProps {
+  title: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+function CollapsibleSection({
+  title,
+  isExpanded,
+  onToggle,
+  children,
+}: CollapsibleSectionProps) {
+  return (
+    <div>
+      <div
+        className={`collapsible-header ${isExpanded ? "expanded" : ""}`}
+        onClick={onToggle}
+      >
+        <h3 className="collapsible-title">{title}</h3>
+        <button type="button" className="collapsible-button">
+          {isExpanded ? "−" : "+"}
+        </button>
+      </div>
+      {isExpanded && <div>{children}</div>}
+    </div>
+  );
+}
+
 function ShapeSection({
   settings,
   onSettingsChange,
   shape,
   onShapeChange,
 }: SectionProps & { shape: Shape; onShapeChange: (shape: Shape) => void }) {
-  return (
-    <>
-      <h3>Shape</h3>
+  const [expanded, setExpanded] = useState(true);
 
+  return (
+    <CollapsibleSection
+      title="Shape"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+    >
       <ShapeSelector
         shape={shape}
         onShapeChange={onShapeChange}
@@ -131,16 +184,20 @@ function ShapeSection({
           Changes how the imported shape is tidied up.
         </div>
       </div>
-    </>
+    </CollapsibleSection>
   );
 }
 
 function MaterialSection({ settings, onSettingsChange }: SectionProps) {
-  return (
-    <>
-      <h3>Material</h3>
+  const [expanded, setExpanded] = useState(false);
 
-      <div style={{ fontSize: "12px", color: "darkred" }}>
+  return (
+    <CollapsibleSection
+      title="Material"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+    >
+      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
         <b>TODO:</b> edge & end grain textures not applied to all faces.
       </div>
 
@@ -239,15 +296,19 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
           Angles below this appear smooth, above appear sharp.
         </div>
       </div>
-    </>
+    </CollapsibleSection>
   );
 }
 
 function BevelSection({ settings, onSettingsChange }: SectionProps) {
-  return (
-    <>
-      <h3>Bevel</h3>
+  const [expanded, setExpanded] = useState(false);
 
+  return (
+    <CollapsibleSection
+      title="Bevel"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+    >
       <div className="field">
         <label>Depth:</label>
         <input
@@ -314,6 +375,7 @@ function BevelSection({ settings, onSettingsChange }: SectionProps) {
         />
         <div className="description">
           Shrink model to maintain original size. Should be negative bevel size.
+          Lower values might create weird artifacts.
         </div>
       </div>
 
@@ -336,7 +398,7 @@ function BevelSection({ settings, onSettingsChange }: SectionProps) {
           performance; 2-4 is usually fine, unless you have a very round shape.
         </div>
       </div>
-    </>
+    </CollapsibleSection>
   );
 }
 

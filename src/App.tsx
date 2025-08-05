@@ -40,7 +40,7 @@ function App() {
                 color={settings.previewColor}
               />
             </Stage>
-            <OrbitControls enablePan={false} />
+            <OrbitControls enablePan={false} minDistance={1} maxDistance={3} />
           </Canvas>
         </div>
       </div>
