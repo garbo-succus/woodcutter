@@ -2,6 +2,7 @@ import { Shape, Box2, Vector2 } from "three";
 import { useRef, useState, useEffect } from "react";
 import { SVGLoader } from "three-stdlib";
 import { cleanupShape } from "./shapeCleanup";
+import { useEffectOnce } from "react-use";
 
 interface ShapeSelectorProps {
   shape: Shape;
@@ -57,7 +58,6 @@ function svgToShape(svgText: string): Shape | null {
 
       // Convert the first shape from the path
       const shapes = SVGLoader.createShapes(path);
-      console.log(123, shapes);
       if (shapes.length > 0) {
         return shapes[0];
       }
@@ -78,27 +78,33 @@ export default function ShapeSelector({
   const [svgPreview, setSvgPreview] = useState<string>("/star.svg");
   const [originalShape, setOriginalShape] = useState<Shape | null>(null);
 
-  // Load initial star.svg on component mount
-  useEffect(() => {
+  // Load initial star.svg on component mount by simulating file change
+  useEffectOnce(() => {
     const loadInitialShape = async () => {
       try {
         const response = await fetch("/star.svg");
         const svgText = await response.text();
-        const newShape = svgToShape(svgText);
 
-        if (newShape) {
-          setOriginalShape(newShape);
-          const cleanedShape = cleanupShape(newShape, cleanupMethod);
-          const scaledShape = autoScaleShape(cleanedShape);
-          onShapeChange(scaledShape);
-        }
+        // Create a synthetic file change event
+        const blob = new Blob([svgText], { type: "image/svg+xml" });
+        const file = new File([blob], "star.svg", { type: "image/svg+xml" });
+
+        // Create synthetic event
+        const syntheticEvent = {
+          target: {
+            files: [file],
+          },
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+        // Use the same handler as user file uploads
+        await handleFileSelect(syntheticEvent);
       } catch (error) {
         console.error("Error loading initial star.svg:", error);
       }
     };
 
     loadInitialShape();
-  }, [onShapeChange, cleanupMethod]);
+  });
 
   // Re-process original shape when cleanup method changes
   useEffect(() => {
