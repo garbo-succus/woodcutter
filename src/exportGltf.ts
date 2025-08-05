@@ -10,32 +10,54 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
     const maxDimension = Math.max(size.x, size.y, size.z);
 
     const originalScale = mesh.scale.clone();
+    const originalMaterials = mesh.material;
+
     if (maxDimension > 0) {
       const scaleFactor = 1 / maxDimension;
       mesh.scale.multiplyScalar(scaleFactor);
     }
 
+    // Clone materials and set colors to white for export
+    if (Array.isArray(mesh.material)) {
+      mesh.material = mesh.material.map((material: any) => {
+        const cloned = material.clone();
+        if (cloned.color) {
+          cloned.color.setHex(0xffffff);
+        }
+        return cloned;
+      });
+    } else {
+      const cloned = (mesh.material as any).clone();
+      if (cloned.color) {
+        cloned.color.setHex(0xffffff);
+      }
+      mesh.material = cloned;
+    }
+
     const exporter = new GLTFExporter();
     exporter.parse(
       mesh,
-      (gltf: ArrayBuffer) => {
+      (gltfProp) => {
+        const gltf = gltfProp as ArrayBuffer;
         const blob = new Blob([gltf], {
           type: "model/gltf-binary",
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "star.glb";
+        a.download = "token.glb";
         a.click();
         URL.revokeObjectURL(url);
 
         mesh.scale.copy(originalScale);
+        mesh.material = originalMaterials;
       },
       (error) => {
         console.error("Error exporting GLTF:", error);
         mesh.scale.copy(originalScale);
+        mesh.material = originalMaterials;
       },
-      { binary: true },
+      { binary: true, maxTextureSize: 512 },
     );
   }
 }

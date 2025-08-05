@@ -3,7 +3,6 @@ import { useState } from "react";
 import ShapeSelector from "./ShapeSelector";
 import { exportGltf } from "./exportGltf";
 
-
 const colors = [
   { value: "#FFFFFF", name: "White" },
   { value: "#B22222", name: "Red" },
@@ -12,7 +11,6 @@ const colors = [
   { value: "#4B0082", name: "Purple" },
   { value: "#4169E1", name: "Blue" },
 ];
-
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const defaultSettings = {
@@ -339,6 +337,7 @@ export default function Settings({
   shape,
   onShapeChange,
 }: SettingsProps) {
+
   return (
     <div className="config">
       <ShapeSection
@@ -361,7 +360,7 @@ export default function Settings({
         </button>
 
         <button type="button" onClick={() => exportGltf(meshRef)}>
-          Download GLTF
+          Download file
         </button>
       </div>
 
