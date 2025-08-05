@@ -1,8 +1,16 @@
-import { Box3, Vector3, Mesh, Material, MeshStandardMaterial, MeshPhysicalMaterial } from "three";
+import {
+  Box3,
+  Vector3,
+  Mesh,
+  Material,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+} from "three";
 import { GLTFExporter } from "three-stdlib";
 import React from "react";
+import { transformGltf } from "./transformGltf";
 
-export function exportGltf(meshRef: React.RefObject<Mesh>) {
+export async function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
     const mesh = meshRef.current;
 
@@ -22,14 +30,20 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
     if (Array.isArray(mesh.material)) {
       mesh.material = mesh.material.map((material: Material) => {
         const cloned = material.clone();
-        if (cloned instanceof MeshStandardMaterial || cloned instanceof MeshPhysicalMaterial) {
+        if (
+          cloned instanceof MeshStandardMaterial ||
+          cloned instanceof MeshPhysicalMaterial
+        ) {
           cloned.color.setHex(0xffffff);
         }
         return cloned;
       });
     } else {
       const cloned = (mesh.material as Material).clone();
-      if (cloned instanceof MeshStandardMaterial || cloned instanceof MeshPhysicalMaterial) {
+      if (
+        cloned instanceof MeshStandardMaterial ||
+        cloned instanceof MeshPhysicalMaterial
+      ) {
         cloned.color.setHex(0xffffff);
       }
       mesh.material = cloned;
@@ -38,11 +52,12 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
     const exporter = new GLTFExporter();
     exporter.parse(
       mesh,
-      (gltfProp) => {
+      async (gltfProp) => {
         const gltf = gltfProp as ArrayBuffer;
-        const blob = new Blob([gltf], {
+        const rawBlob = new Blob([gltf], {
           type: "model/gltf-binary",
         });
+        const blob = await transformGltf(rawBlob);
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
