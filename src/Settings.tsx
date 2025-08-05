@@ -25,8 +25,22 @@ export const defaultSettings = {
   previewColor: colors[3].value,
   cleanupMethod: 1,
   clearcoat: 0,
+  clearcoatRoughness: 0.1,
   roughness: 1,
   metalness: 0,
+  transmission: 0,
+  dispersion: 0,
+  ior: 1.5,
+  iridescence: 0,
+  iridescenceIOR: 1.3,
+  iridescenceThickness: 400,
+  sheen: 0,
+  sheenRoughness: 1,
+  sheenColor: "#FFFFFF",
+  specularIntensity: 1,
+  specularColor: "#FFFFFF",
+  thickness: 0,
+  materialInputType: "range",
 };
 
 export type SettingsType = typeof defaultSettings;
@@ -49,6 +63,7 @@ interface CollapsibleSectionProps {
   isExpanded: boolean;
   onToggle: () => void;
   children: React.ReactNode;
+  type?: "h3" | "h4";
 }
 
 function CollapsibleSection({
@@ -56,14 +71,17 @@ function CollapsibleSection({
   isExpanded,
   onToggle,
   children,
+  type = "h3",
 }: CollapsibleSectionProps) {
+  const HeadingTag = type;
+
   return (
     <div>
       <div
         className={`collapsible-header ${isExpanded ? "expanded" : ""}`}
         onClick={onToggle}
       >
-        <h3 className="collapsible-title">{title}</h3>
+        <HeadingTag className="collapsible-title">{title}</HeadingTag>
         <button type="button" className="collapsible-button">
           {isExpanded ? "−" : "+"}
         </button>
@@ -86,6 +104,7 @@ function ShapeSection({
       title="Shape"
       isExpanded={expanded}
       onToggle={() => setExpanded(!expanded)}
+      type="h3"
     >
       <ShapeSelector
         shape={shape}
@@ -116,79 +135,20 @@ function ShapeSection({
   );
 }
 
-function MaterialSection({ settings, onSettingsChange }: SectionProps) {
+function ClearcoatSection({ settings, onSettingsChange }: SectionProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <CollapsibleSection
-      title="Material"
+      title="Clearcoat"
       isExpanded={expanded}
       onToggle={() => setExpanded(!expanded)}
+      type="h4"
     >
-      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
-        <b>TODO:</b> edge & end grain textures not applied to all faces.
-      </div>
-
-      <div className="field">
-        <label>Preview Color:</label>
-        <select
-          value={settings.previewColor}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              previewColor: e.target.value,
-            })
-          }
-        >
-          {colors.map((color) => (
-            <option key={color.value} value={color.value}>
-              {color.name}
-            </option>
-          ))}
-        </select>
-        <div className="description">The exported model is always white.</div>
-      </div>
-
-      <div className="field">
-        <label>Roughness:</label>
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={settings.roughness}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              roughness: parseFloat(e.target.value),
-            })
-          }
-        />
-        <div className="description">Gives the surface a rough finish.</div>
-      </div>
-
-      <div className="field">
-        <label>Metalness:</label>
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={settings.metalness}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              metalness: parseFloat(e.target.value),
-            })
-          }
-        />
-        <div className="description">Gives the surface a metallic lustre.</div>
-      </div>
-
       <div className="field">
         <label>Clearcoat:</label>
         <input
-          type="range"
+          type={settings.materialInputType}
           min={0}
           max={1}
           step={0.1}
@@ -202,6 +162,342 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
         />
         <div className="description">
           Add a layer of varnish to the surface.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Clearcoat Roughness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.clearcoatRoughness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              clearcoatRoughness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Controls the roughness of the clearcoat layer.
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function IridescenceSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Iridescence"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Iridescence:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.iridescence}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              iridescence: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Creates rainbow-like color shifts at different angles.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Iridescence IOR:</label>
+        <input
+          type={settings.materialInputType}
+          min={1}
+          max={2.5}
+          step={0.05}
+          value={settings.iridescenceIOR}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              iridescenceIOR: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Index of refraction for the iridescent layer.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Iridescence Thickness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1000}
+          step={10}
+          value={settings.iridescenceThickness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              iridescenceThickness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Thickness of the iridescent layer in nanometers.
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function SpecularSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Specular"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Specular Intensity:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={2}
+          step={0.05}
+          value={settings.specularIntensity}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              specularIntensity: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Controls the strength of specular reflections.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Specular Color:</label>
+        <input
+          type="color"
+          value={settings.specularColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              specularColor: e.target.value,
+            })
+          }
+        />
+        <div className="description">
+          Color tint for the specular reflections.
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Transmission"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Transmission:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.transmission}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              transmission: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Makes the surface translucent or transparent.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Dispersion:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.dispersion}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              dispersion: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Creates prismatic color separation in transparent materials.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>IOR (Index of Refraction):</label>
+        <input
+          type={settings.materialInputType}
+          min={1}
+          max={2.5}
+          step={0.05}
+          value={settings.ior}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              ior: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Controls light bending through transparent materials.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Thickness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={5}
+          step={0.1}
+          value={settings.thickness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              thickness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Volume thickness for subsurface scattering effects.
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function SheenSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Sheen"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Sheen:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.sheen}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              sheen: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Adds fabric-like reflectance to the surface.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Sheen Roughness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.sheenRoughness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              sheenRoughness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Controls the roughness of the sheen effect.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Sheen Color:</label>
+        <input
+          type="color"
+          value={settings.sheenColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              sheenColor: e.target.value,
+            })
+          }
+        />
+        <div className="description">Color tint for the sheen reflectance.</div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function OtherSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Other"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Input Type:</label>
+        <select
+          value={settings.materialInputType}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              materialInputType: e.target.value,
+            })
+          }
+        >
+          <option value="range">Sliders</option>
+          <option value="number">Numbers</option>
+        </select>
+        <div className="description">
+          Changes how material values are entered.
         </div>
       </div>
 
@@ -228,6 +524,98 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
   );
 }
 
+function MaterialSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Material"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h3"
+    >
+      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
+        <b>TODO:</b> edge & end grain textures not applied to all faces.
+      </div>
+
+      <div className="field">
+        <label>Preview Color:</label>
+        <input
+          type="color"
+          value={settings.previewColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              previewColor: e.target.value,
+            })
+          }
+        />
+        <div className="description">The exported model is always white.</div>
+      </div>
+
+      <div className="field">
+        <label>Roughness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.roughness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              roughness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Gives the surface a rough finish.</div>
+      </div>
+
+      <div className="field">
+        <label>Metalness:</label>
+        <input
+          type={settings.materialInputType}
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.metalness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              metalness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Gives the surface a metallic lustre.</div>
+      </div>
+
+      <ClearcoatSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
+
+      <IridescenceSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
+
+      <SpecularSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
+
+      <TransmissionSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
+
+      <SheenSection settings={settings} onSettingsChange={onSettingsChange} />
+
+      <OtherSection settings={settings} onSettingsChange={onSettingsChange} />
+    </CollapsibleSection>
+  );
+}
+
 function BevelSection({ settings, onSettingsChange }: SectionProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -236,13 +624,14 @@ function BevelSection({ settings, onSettingsChange }: SectionProps) {
       title="Bevel"
       isExpanded={expanded}
       onToggle={() => setExpanded(!expanded)}
+      type="h3"
     >
       <div className="field">
         <label>Depth:</label>
         <input
-          min={0}
+          min={0.01}
           type="number"
-          step="0.1"
+          step="0.01"
           value={settings.depth}
           onChange={(e) =>
             onSettingsChange({
@@ -259,6 +648,7 @@ function BevelSection({ settings, onSettingsChange }: SectionProps) {
         <input
           type="number"
           step="0.01"
+          min={0}
           value={settings.bevelThickness}
           onChange={(e) =>
             onSettingsChange({
@@ -337,7 +727,6 @@ export default function Settings({
   shape,
   onShapeChange,
 }: SettingsProps) {
-
   return (
     <div className="config">
       <ShapeSection
@@ -347,12 +736,12 @@ export default function Settings({
         onShapeChange={onShapeChange}
       />
 
+      <BevelSection settings={settings} onSettingsChange={onSettingsChange} />
+
       <MaterialSection
         settings={settings}
         onSettingsChange={onSettingsChange}
       />
-
-      <BevelSection settings={settings} onSettingsChange={onSettingsChange} />
 
       <div className="button-container">
         <button type="button" onClick={() => onSettingsChange(defaultSettings)}>

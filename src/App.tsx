@@ -17,10 +17,7 @@ function App() {
       <div className="main-content">
         <div className="sidebar">
           <h1>Woodcutter</h1>
-          <p>
-            This is a tool for creating 3D models from 2D cut-outs. It's meant
-            for digital tabletop & board game tokens, such as wooden meeples.
-          </p>
+          <p>Create 3D models from 2D cut-outs, such as board game pieces.</p>
           <Settings
             settings={settings}
             onSettingsChange={setSettings}

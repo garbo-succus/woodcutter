@@ -11,6 +11,21 @@ interface ExtrudedShapeProps {
   color: string;
 }
 
+const BackgroundShape = (props) => {
+  return (
+    <group {...props}>
+      <mesh position={[-0.25, -0.05, 0]}>
+        <boxGeometry args={[0.5, 0.1, 1]} />
+        <meshStandardMaterial color="#ccc" />
+      </mesh>
+      <mesh position={[0.25, -0.05, 0]}>
+        <boxGeometry args={[0.5, 0.1, 1]} />
+        <meshStandardMaterial color="#333" />
+      </mesh>
+    </group>
+  );
+};
+
 const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
   ({ shape, settings, color }, ref) => {
     const geometryRef = useRef<ExtrudeGeometry>(null!);
@@ -46,34 +61,63 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
       }
     }, [shape, settings]);
 
+    const offset = settings.depth + settings.bevelThickness;
+
     return (
-      <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
-        <extrudeGeometry ref={geometryRef} args={[shape, settings]} />
-        {[
-          // Material 0: Side faces (edge grain)
-          <meshPhysicalMaterial
-            key="edge"
-            color={color}
-            map={edgeGrainDiffuse}
-            normalMap={edgeGrainNormal}
-            clearcoat={settings.clearcoat}
-            clearcoatRoughness={0.1}
-            roughness={settings.roughness}
-            metalness={settings.metalness}
-          />,
-          // Material 1: Front/back face (end grain)
-          <meshPhysicalMaterial
-            key="front"
-            color={color}
-            map={endGrainDiffuse}
-            normalMap={endGrainNormal}
-            clearcoat={settings.clearcoat}
-            clearcoatRoughness={0.1}
-            roughness={settings.roughness}
-            metalness={settings.metalness}
-          />,
-        ]}
-      </mesh>
+      <group position={[0, offset / 2, 0]}>
+        <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
+          <extrudeGeometry ref={geometryRef} args={[shape, settings]} />
+          {[
+            // Material 0: Side faces (edge grain)
+            <meshPhysicalMaterial
+              key="edge"
+              color={color}
+              map={edgeGrainDiffuse}
+              normalMap={edgeGrainNormal}
+              clearcoat={settings.clearcoat}
+              clearcoatRoughness={settings.clearcoatRoughness}
+              roughness={settings.roughness}
+              metalness={settings.metalness}
+              transmission={settings.transmission}
+              dispersion={settings.dispersion}
+              ior={settings.ior}
+              iridescence={settings.iridescence}
+              iridescenceIOR={settings.iridescenceIOR}
+              iridescenceThicknessRange={[0, settings.iridescenceThickness]}
+              sheen={settings.sheen}
+              sheenRoughness={settings.sheenRoughness}
+              sheenColor={settings.sheenColor}
+              specularIntensity={settings.specularIntensity}
+              specularColor={settings.specularColor}
+              thickness={settings.thickness}
+            />,
+            // Material 1: Front/back face (end grain)
+            <meshPhysicalMaterial
+              key="front"
+              color={color}
+              map={endGrainDiffuse}
+              normalMap={endGrainNormal}
+              clearcoat={settings.clearcoat}
+              clearcoatRoughness={settings.clearcoatRoughness}
+              roughness={settings.roughness}
+              metalness={settings.metalness}
+              transmission={settings.transmission}
+              dispersion={settings.dispersion}
+              ior={settings.ior}
+              iridescence={settings.iridescence}
+              iridescenceIOR={settings.iridescenceIOR}
+              iridescenceThicknessRange={[0, settings.iridescenceThickness]}
+              sheen={settings.sheen}
+              sheenRoughness={settings.sheenRoughness}
+              sheenColor={settings.sheenColor}
+              specularIntensity={settings.specularIntensity}
+              specularColor={settings.specularColor}
+              thickness={settings.thickness}
+            />,
+          ]}
+        </mesh>
+        <BackgroundShape position={[0, -offset, 0]} />
+      </group>
     );
   },
 );
