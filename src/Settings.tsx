@@ -1,0 +1,226 @@
+import { MathUtils, Shape, Mesh } from "three";
+import { GLTFExporter } from "three-stdlib";
+import ShapeSelector from "./ShapeSelector";
+
+const colors = [
+  { value: "#FFFFFF", name: "White" },
+  { value: "#B22222", name: "Red" },
+  { value: "#FFD700", name: "Gold" },
+  { value: "#228B22", name: "Green" },
+  { value: "#4B0082", name: "Purple" },
+  { value: "#4169E1", name: "Blue" },
+];
+
+function exportGltf(meshRef: React.RefObject<Mesh>) {
+  if (meshRef.current) {
+    const exporter = new GLTFExporter();
+    exporter.parse(
+      meshRef.current,
+      (gltf) => {
+        // Set the generator field in the asset metadata
+        if (!gltf.asset) {
+          gltf.asset = {};
+        }
+        gltf.asset.generator = "Woodcutter by https://garbo.succus.games/";
+
+        // Set material color to white for export
+        if (gltf.materials && gltf.materials.length > 0) {
+          gltf.materials.forEach((material) => {
+            if (material.pbrMetallicRoughness) {
+              material.pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1]; // white
+            }
+          });
+        }
+
+        const blob = new Blob([JSON.stringify(gltf, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "star.gltf";
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.error("Error exporting GLTF:", error);
+      },
+    );
+  }
+}
+
+export const defaultSettings = {
+  bevelEnabled: true,
+  depth: 0.2,
+  bevelThickness: 0.05,
+  steps: 1,
+  bevelSize: 0.05,
+  bevelOffset: -0.05,
+  bevelSegments: 4,
+  maxSmoothAngle: Math.PI,
+  previewColor: colors[3].value,
+};
+
+interface SettingsProps {
+  settings: any;
+  onSettingsChange: (settings: any) => void;
+  meshRef: React.RefObject<any>;
+  shape: Shape;
+  onShapeChange: (shape: Shape) => void;
+}
+
+export default function Settings({
+  settings,
+  onSettingsChange,
+  meshRef,
+  shape,
+  onShapeChange,
+}: SettingsProps) {
+  return (
+    <div className="config">
+      <ShapeSelector shape={shape} onShapeChange={onShapeChange} />
+
+      <div className="field">
+        <label>Preview Color:</label>
+        <select
+          value={settings.previewColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              previewColor: e.target.value,
+            })
+          }
+        >
+          {colors.map((color) => (
+            <option key={color.value} value={color.value}>
+              {color.name}
+            </option>
+          ))}
+        </select>
+        <div className="description">
+          This is only for preview. The exported model is always white; change
+          colors in-game.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Depth:</label>
+        <input
+          min={0}
+          type="number"
+          step="0.1"
+          value={settings.depth}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              depth: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Thickness of the shape</div>
+      </div>
+
+      <div className="field">
+        <label>Bevel depth:</label>
+        <input
+          type="number"
+          step="0.01"
+          value={settings.bevelThickness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              bevelThickness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Height of the rounded edge</div>
+      </div>
+
+      <div className="field">
+        <label>Bevel size:</label>
+        <input
+          type="number"
+          step="0.01"
+          min={0}
+          value={settings.bevelSize}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              bevelSize: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Width of the rounded edge</div>
+      </div>
+
+      <div className="field">
+        <label>Bevel offset:</label>
+        <input
+          type="number"
+          step="0.01"
+          max={0}
+          value={settings.bevelOffset}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              bevelOffset: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Shrink model to maintain original size. Should be negative bevel size.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Bevel Segments:</label>
+        <input
+          type="number"
+          min={0}
+          max={16}
+          value={settings.bevelSegments}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              bevelSegments: parseInt(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Number of polygons to approximate the rounded edge. More = worse
+          performance; 2-4 is usually fine, unless you have a very round shape.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Smooth Angle (°):</label>
+        <input
+          type="number"
+          step={1}
+          min={0}
+          max={180}
+          value={Math.round(MathUtils.radToDeg(settings.maxSmoothAngle))}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              maxSmoothAngle: MathUtils.degToRad(parseFloat(e.target.value)),
+            })
+          }
+        />
+        <div className="description">
+          Angles below this appear smooth, above appear sharp
+        </div>
+      </div>
+
+      <div className="button-container">
+        <button type="button" onClick={() => onSettingsChange(defaultSettings)}>
+          Reset
+        </button>
+
+        <button type="button" onClick={() => exportGltf(meshRef)}>
+          Download GLTF
+        </button>
+      </div>
+    </div>
+  );
+}
