@@ -3,10 +3,11 @@ import { useRef, useEffect } from "react";
 import React from "react";
 import { Shape, Mesh, ExtrudeGeometry, TextureLoader } from "three";
 import * as BufferGeometryUtils from "three-stdlib";
+import type { SettingsType } from "./Settings";
 
 interface ExtrudedShapeProps {
   shape: Shape;
-  settings: any;
+  settings: SettingsType;
   color: string;
 }
 

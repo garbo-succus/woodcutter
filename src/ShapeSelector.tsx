@@ -71,7 +71,6 @@ function svgToShape(svgText: string): Shape | null {
 }
 
 export default function ShapeSelector({
-  shape,
   onShapeChange,
   cleanupMethod,
 }: ShapeSelectorProps) {
@@ -99,7 +98,7 @@ export default function ShapeSelector({
     };
 
     loadInitialShape();
-  }, [onShapeChange]);
+  }, [onShapeChange, cleanupMethod]);
 
   // Re-process original shape when cleanup method changes
   useEffect(() => {

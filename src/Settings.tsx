@@ -49,6 +49,7 @@ function exportGltf(meshRef: React.RefObject<Mesh>) {
   }
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const defaultSettings = {
   bevelEnabled: true,
   depth: 0.2,
@@ -62,10 +63,12 @@ export const defaultSettings = {
   cleanupMethod: 1,
 };
 
+export type SettingsType = typeof defaultSettings;
+
 interface SettingsProps {
-  settings: any;
-  onSettingsChange: (settings: any) => void;
-  meshRef: React.RefObject<any>;
+  settings: SettingsType;
+  onSettingsChange: (settings: SettingsType) => void;
+  meshRef: React.RefObject<Mesh>;
   shape: Shape;
   onShapeChange: (shape: Shape) => void;
 }
@@ -240,6 +243,10 @@ export default function Settings({
           This is only for preview. The exported model is always white; change
           colors in-game.
         </div>
+      </div>
+
+      <div style={{ fontSize: "12px", color: "darkred" }}>
+        <b>TODO:</b> edge & end grain textures not applied to all faces
       </div>
 
       <div className="button-container">

@@ -125,7 +125,7 @@ function pointToLineDistance(
 
   if (lenSq === 0) return Math.sqrt(A * A + B * B);
 
-  let param = dot / lenSq;
+  const param = dot / lenSq;
 
   let xx, yy;
 
@@ -180,35 +180,36 @@ function createOuterContourByRaySampling(points: Vector2[]): Vector2[] {
   // Calculate shape center and bounding radius
   const center = calculateShapeCenter(points);
   const maxRadius = calculateMaxRadius(points, center);
-  
+
   // Sample rays at regular angular intervals
   const numRays = 360; // Number of rays to cast
   const rayStartRadius = maxRadius * 1.5; // Start rays outside the shape
-  
+
   const contourPoints: Vector2[] = [];
-  
+
   for (let i = 0; i < numRays; i++) {
     const angle = (i / numRays) * Math.PI * 2;
-    
+
     // Calculate ray start point (outside the shape)
     const rayStart = new Vector2(
       center.x + Math.cos(angle) * rayStartRadius,
-      center.y + Math.sin(angle) * rayStartRadius
+      center.y + Math.sin(angle) * rayStartRadius,
     );
-    
+
     // Cast ray toward center and find intersection with shape
     const intersection = findRayShapeIntersection(rayStart, center, points);
-    
+
     if (intersection) {
       contourPoints.push(intersection);
     }
   }
-  
+
   return contourPoints;
 }
 
 function calculateShapeCenter(points: Vector2[]): Vector2 {
-  let sumX = 0, sumY = 0;
+  let sumX = 0,
+    sumY = 0;
   for (const point of points) {
     sumX += point.x;
     sumY += point.y;
@@ -225,22 +226,32 @@ function calculateMaxRadius(points: Vector2[], center: Vector2): number {
   return maxDistance;
 }
 
-function findRayShapeIntersection(rayStart: Vector2, rayEnd: Vector2, shapePoints: Vector2[]): Vector2 | null {
+function findRayShapeIntersection(
+  rayStart: Vector2,
+  rayEnd: Vector2,
+  shapePoints: Vector2[],
+): Vector2 | null {
   let closestIntersection: Vector2 | null = null;
   let closestDistance = Infinity;
-  
+
   // Check intersection with each edge of the shape
   for (let i = 0; i < shapePoints.length; i++) {
     const edgeStart = shapePoints[i];
     const edgeEnd = shapePoints[(i + 1) % shapePoints.length];
-    
+
     const intersection = lineIntersection(rayStart, rayEnd, edgeStart, edgeEnd);
-    
+
     if (intersection) {
       // Check if intersection is on the ray (between rayStart and rayEnd)
-      const rayDirection = new Vector2(rayEnd.x - rayStart.x, rayEnd.y - rayStart.y);
-      const toIntersection = new Vector2(intersection.x - rayStart.x, intersection.y - rayStart.y);
-      
+      const rayDirection = new Vector2(
+        rayEnd.x - rayStart.x,
+        rayEnd.y - rayStart.y,
+      );
+      const toIntersection = new Vector2(
+        intersection.x - rayStart.x,
+        intersection.y - rayStart.y,
+      );
+
       // Ensure intersection is in the direction of the ray
       if (rayDirection.dot(toIntersection) >= 0) {
         const distance = rayStart.distanceTo(intersection);
@@ -251,40 +262,40 @@ function findRayShapeIntersection(rayStart: Vector2, rayEnd: Vector2, shapePoint
       }
     }
   }
-  
+
   return closestIntersection;
 }
 
-function lineIntersection(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2): Vector2 | null {
-  const x1 = p1.x, y1 = p1.y;
-  const x2 = p2.x, y2 = p2.y;
-  const x3 = p3.x, y3 = p3.y;
-  const x4 = p4.x, y4 = p4.y;
-  
+function lineIntersection(
+  p1: Vector2,
+  p2: Vector2,
+  p3: Vector2,
+  p4: Vector2,
+): Vector2 | null {
+  const x1 = p1.x,
+    y1 = p1.y;
+  const x2 = p2.x,
+    y2 = p2.y;
+  const x3 = p3.x,
+    y3 = p3.y;
+  const x4 = p4.x,
+    y4 = p4.y;
+
   const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  
+
   if (Math.abs(denom) < 1e-10) {
     return null; // Lines are parallel
   }
-  
+
   const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
   const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
-  
+
   // Check if intersection is within both line segments
   if (u >= 0 && u <= 1) {
     const x = x1 + t * (x2 - x1);
     const y = y1 + t * (y2 - y1);
     return new Vector2(x, y);
   }
-  
-  return null;
-}
 
-function createTriangleShape(): Shape {
-  const triangleShape = new Shape();
-  triangleShape.moveTo(0, 0.5);
-  triangleShape.lineTo(-0.5, -0.5);
-  triangleShape.lineTo(0.5, -0.5);
-  triangleShape.lineTo(0, 0.5);
-  return triangleShape;
+  return null;
 }
