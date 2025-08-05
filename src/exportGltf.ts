@@ -54,10 +54,10 @@ export async function exportGltf(meshRef: React.RefObject<Mesh>) {
       mesh,
       async (gltfProp) => {
         const gltf = gltfProp as ArrayBuffer;
-        const rawBlob = new Blob([gltf], {
+        const transformed = await transformGltf(gltf);
+        const blob = new Blob([transformed], {
           type: "model/gltf-binary",
         });
-        const blob = await transformGltf(rawBlob);
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -73,7 +73,7 @@ export async function exportGltf(meshRef: React.RefObject<Mesh>) {
         mesh.scale.copy(originalScale);
         mesh.material = originalMaterials;
       },
-      { binary: true, maxTextureSize: 512 },
+      { binary: true },
     );
   }
 }

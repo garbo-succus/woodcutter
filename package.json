@@ -12,9 +12,14 @@
     "test": "exit 0"
   },
   "dependencies": {
+    "@gltf-transform/core": "^4.2.1",
+    "@gltf-transform/extensions": "^4.2.1",
+    "@gltf-transform/functions": "^4.2.1",
     "@react-three/drei": "^10.6.1",
     "@react-three/fiber": "^9.3.0",
     "@types/three": "^0.179.0",
+    "draco3dgltf": "^1.5.7",
+    "meshoptimizer": "^0.24.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-use": "^17.6.0",
