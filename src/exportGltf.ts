@@ -1,17 +1,6 @@
 import { Box3, Vector3, Mesh } from "three";
 import { GLTFExporter } from "three-stdlib";
 
-interface GLTFResult {
-  asset?: {
-    generator?: string;
-  };
-  materials?: Array<{
-    pbrMetallicRoughness?: {
-      baseColorFactor?: number[];
-    };
-  }>;
-}
-
 export function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
     const mesh = meshRef.current;
@@ -29,29 +18,14 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
     const exporter = new GLTFExporter();
     exporter.parse(
       mesh,
-      (gltf: ArrayBuffer | { [key: string]: unknown }) => {
-        const gltfObj = gltf as GLTFResult;
-
-        if (!gltfObj.asset) {
-          gltfObj.asset = {};
-        }
-        gltfObj.asset.generator = "Woodcutter by https://garbo.succus.games/";
-
-        if (gltfObj.materials && gltfObj.materials.length > 0) {
-          gltfObj.materials.forEach((material) => {
-            if (material.pbrMetallicRoughness) {
-              material.pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1];
-            }
-          });
-        }
-
-        const blob = new Blob([JSON.stringify(gltfObj, null, 2)], {
-          type: "application/json",
+      (gltf: ArrayBuffer) => {
+        const blob = new Blob([gltf], {
+          type: "model/gltf-binary",
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "star.gltf";
+        a.download = "star.glb";
         a.click();
         URL.revokeObjectURL(url);
 
@@ -61,7 +35,7 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
         console.error("Error exporting GLTF:", error);
         mesh.scale.copy(originalScale);
       },
-      { binary: false },
+      { binary: true },
     );
   }
 }
