@@ -22,7 +22,6 @@ const colors = [
   { value: "#4169E1", name: "Blue" },
 ];
 
-
 function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
     const exporter = new GLTFExporter();
@@ -31,7 +30,7 @@ function exportGltf(meshRef: React.RefObject<Mesh>) {
       (gltf: ArrayBuffer | { [key: string]: unknown }) => {
         // With binary: false, gltf will always be an object, never ArrayBuffer
         const gltfObj = gltf as GLTFResult;
-        
+
         // Set the generator field in the asset metadata
         if (!gltfObj.asset) {
           gltfObj.asset = {};
@@ -77,6 +76,9 @@ export const defaultSettings = {
   maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
   cleanupMethod: 1,
+  clearcoat: 0,
+  roughness: 1,
+  metalness: 0,
 };
 
 export type SettingsType = typeof defaultSettings;
@@ -89,15 +91,21 @@ interface SettingsProps {
   onShapeChange: (shape: Shape) => void;
 }
 
-export default function Settings({
+interface SectionProps {
+  settings: SettingsType;
+  onSettingsChange: (settings: SettingsType) => void;
+}
+
+function ShapeSection({
   settings,
   onSettingsChange,
-  meshRef,
   shape,
   onShapeChange,
-}: SettingsProps) {
+}: SectionProps & { shape: Shape; onShapeChange: (shape: Shape) => void }) {
   return (
-    <div className="config">
+    <>
+      <h3>Shape</h3>
+
       <ShapeSelector
         shape={shape}
         onShapeChange={onShapeChange}
@@ -124,10 +132,124 @@ export default function Settings({
           <div
             style={{ paddingTop: "10px", fontSize: "12px", color: "darkred" }}
           >
-            <b>TODO:</b> The "Aggressive" setting is incomplete
+            <b>TODO:</b> The "Aggressive" setting is incomplete.
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+function MaterialSection({ settings, onSettingsChange }: SectionProps) {
+  return (
+    <>
+      <h3>Material</h3>
+
+      <div style={{ fontSize: "12px", color: "darkred" }}>
+        <b>TODO:</b> edge & end grain textures not applied to all faces.
+      </div>
+
+      <div className="field">
+        <label>Preview Color:</label>
+        <select
+          value={settings.previewColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              previewColor: e.target.value,
+            })
+          }
+        >
+          {colors.map((color) => (
+            <option key={color.value} value={color.value}>
+              {color.name}
+            </option>
+          ))}
+        </select>
+        <div className="description">The exported model is always white.</div>
+      </div>
+
+      <div className="field">
+        <label>Roughness:</label>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.roughness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              roughness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Gives the surface a rough finish.</div>
+      </div>
+
+      <div className="field">
+        <label>Metalness:</label>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={settings.metalness}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              metalness: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Gives the surface a metallic lustre.</div>
+      </div>
+
+      <div className="field">
+        <label>Clearcoat:</label>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.1}
+          value={settings.clearcoat}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              clearcoat: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">Add a layer of varnish to the surface.</div>
+      </div>
+
+      <div className="field">
+        <label>Smoothing Angle (°):</label>
+        <input
+          type="number"
+          step={1}
+          min={0}
+          max={180}
+          value={Math.round(MathUtils.radToDeg(settings.maxSmoothAngle))}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              maxSmoothAngle: MathUtils.degToRad(parseFloat(e.target.value)),
+            })
+          }
+        />
+        <div className="description">
+          Angles below this appear smooth, above appear sharp.
+        </div>
+      </div>
+    </>
+  );
+}
+
+function BevelSection({ settings, onSettingsChange }: SectionProps) {
+  return (
+    <>
+      <h3>Bevel</h3>
 
       <div className="field">
         <label>Depth:</label>
@@ -143,7 +265,7 @@ export default function Settings({
             })
           }
         />
-        <div className="description">Thickness of the shape</div>
+        <div className="description">Thickness of the shape.</div>
       </div>
 
       <div className="field">
@@ -159,7 +281,7 @@ export default function Settings({
             })
           }
         />
-        <div className="description">Height of the rounded edge</div>
+        <div className="description">Height of the rounded edge.</div>
       </div>
 
       <div className="field">
@@ -176,7 +298,7 @@ export default function Settings({
             })
           }
         />
-        <div className="description">Width of the rounded edge</div>
+        <div className="description">Width of the rounded edge.</div>
       </div>
 
       <div className="field">
@@ -217,53 +339,32 @@ export default function Settings({
           performance; 2-4 is usually fine, unless you have a very round shape.
         </div>
       </div>
+    </>
+  );
+}
 
-      <div className="field">
-        <label>Smooth Angle (°):</label>
-        <input
-          type="number"
-          step={1}
-          min={0}
-          max={180}
-          value={Math.round(MathUtils.radToDeg(settings.maxSmoothAngle))}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              maxSmoothAngle: MathUtils.degToRad(parseFloat(e.target.value)),
-            })
-          }
-        />
-        <div className="description">
-          Angles below this appear smooth, above appear sharp
-        </div>
-      </div>
+export default function Settings({
+  settings,
+  onSettingsChange,
+  meshRef,
+  shape,
+  onShapeChange,
+}: SettingsProps) {
+  return (
+    <div className="config">
+      <ShapeSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+        shape={shape}
+        onShapeChange={onShapeChange}
+      />
 
-      <div className="field">
-        <label>Preview Color:</label>
-        <select
-          value={settings.previewColor}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              previewColor: e.target.value,
-            })
-          }
-        >
-          {colors.map((color) => (
-            <option key={color.value} value={color.value}>
-              {color.name}
-            </option>
-          ))}
-        </select>
-        <div className="description">
-          This is only for preview. The exported model is always white; change
-          colors in-game.
-        </div>
-      </div>
+      <MaterialSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
 
-      <div style={{ fontSize: "12px", color: "darkred" }}>
-        <b>TODO:</b> edge & end grain textures not applied to all faces
-      </div>
+      <BevelSection settings={settings} onSettingsChange={onSettingsChange} />
 
       <div className="button-container">
         <button type="button" onClick={() => onSettingsChange(defaultSettings)}>

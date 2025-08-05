@@ -51,18 +51,26 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
         <extrudeGeometry ref={geometryRef} args={[shape, settings]} />
         {[
           // Material 0: Side faces (edge grain)
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             key="edge"
             color={color}
             map={edgeGrainDiffuse}
             normalMap={edgeGrainNormal}
+            clearcoat={settings.clearcoat}
+            clearcoatRoughness={0.1}
+            roughness={settings.roughness}
+            metalness={settings.metalness}
           />,
           // Material 1: Front/back face (end grain)
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             key="front"
             color={color}
             map={endGrainDiffuse}
             normalMap={endGrainNormal}
+            clearcoat={settings.clearcoat}
+            clearcoatRoughness={0.1}
+            roughness={settings.roughness}
+            metalness={settings.metalness}
           />,
         ]}
       </mesh>
