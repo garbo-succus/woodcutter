@@ -17,7 +17,7 @@ interface GLTFResult {
 const colors = [
   { value: "#FFFFFF", name: "White" },
   { value: "#B22222", name: "Red" },
-  { value: "#FFD700", name: "Gold" },
+  { value: "#FFD700", name: "Yellow" },
   { value: "#228B22", name: "Green" },
   { value: "#4B0082", name: "Purple" },
   { value: "#4169E1", name: "Blue" },
@@ -433,6 +433,10 @@ export default function Settings({
         <button type="button" onClick={() => exportGltf(meshRef)}>
           Download GLTF
         </button>
+      </div>
+
+      <div className="description">
+        Need help? <a href="https://discord.gg/sJVbJcd">Visit our Discord</a>
       </div>
     </div>
   );
