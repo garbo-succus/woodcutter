@@ -1,10 +1,12 @@
 import { Shape, Box2, Vector2 } from "three";
 import { useRef, useState, useEffect } from "react";
 import { SVGLoader } from "three-stdlib";
+import { cleanupShape } from "./shapeCleanup";
 
 interface ShapeSelectorProps {
   shape: Shape;
   onShapeChange: (shape: Shape) => void;
+  cleanupMethod: number;
 }
 
 // Function to auto-scale a shape so the largest dimension is 1
@@ -71,9 +73,11 @@ function svgToShape(svgText: string): Shape | null {
 export default function ShapeSelector({
   shape,
   onShapeChange,
+  cleanupMethod,
 }: ShapeSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [svgPreview, setSvgPreview] = useState<string>("/star.svg");
+  const [originalShape, setOriginalShape] = useState<Shape | null>(null);
 
   // Load initial star.svg on component mount
   useEffect(() => {
@@ -84,7 +88,9 @@ export default function ShapeSelector({
         const newShape = svgToShape(svgText);
 
         if (newShape) {
-          const scaledShape = autoScaleShape(newShape);
+          setOriginalShape(newShape);
+          const cleanedShape = cleanupShape(newShape, cleanupMethod);
+          const scaledShape = autoScaleShape(cleanedShape);
           onShapeChange(scaledShape);
         }
       } catch (error) {
@@ -94,6 +100,15 @@ export default function ShapeSelector({
 
     loadInitialShape();
   }, [onShapeChange]);
+
+  // Re-process original shape when cleanup method changes
+  useEffect(() => {
+    if (originalShape) {
+      const cleanedShape = cleanupShape(originalShape, cleanupMethod);
+      const scaledShape = autoScaleShape(cleanedShape);
+      onShapeChange(scaledShape);
+    }
+  }, [cleanupMethod, originalShape, onShapeChange]);
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -105,7 +120,9 @@ export default function ShapeSelector({
     const newShape = svgToShape(text);
 
     if (newShape) {
-      const scaledShape = autoScaleShape(newShape);
+      setOriginalShape(newShape);
+      const cleanedShape = cleanupShape(newShape, cleanupMethod);
+      const scaledShape = autoScaleShape(cleanedShape);
       onShapeChange(scaledShape);
     }
 

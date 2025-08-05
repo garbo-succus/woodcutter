@@ -59,6 +59,7 @@ export const defaultSettings = {
   bevelSegments: 4,
   maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
+  cleanupMethod: 1,
 };
 
 interface SettingsProps {
@@ -78,28 +79,32 @@ export default function Settings({
 }: SettingsProps) {
   return (
     <div className="config">
-      <ShapeSelector shape={shape} onShapeChange={onShapeChange} />
+      <ShapeSelector
+        shape={shape}
+        onShapeChange={onShapeChange}
+        cleanupMethod={settings.cleanupMethod}
+      />
 
       <div className="field">
-        <label>Preview Color:</label>
+        <label>Cleanup method:</label>
         <select
-          value={settings.previewColor}
+          value={settings.cleanupMethod}
           onChange={(e) =>
             onSettingsChange({
               ...settings,
-              previewColor: e.target.value,
+              cleanupMethod: parseInt(e.target.value),
             })
           }
         >
-          {colors.map((color) => (
-            <option key={color.value} value={color.value}>
-              {color.name}
-            </option>
-          ))}
+          <option value={0}>None</option>
+          <option value={1}>Normal</option>
+          <option value={2}>Aggressive</option>
         </select>
         <div className="description">
-          This is only for preview. The exported model is always white; change
-          colors in-game.
+          Changes how the imported shape is tidied up.
+          <div style={{ paddingTop: "10px", fontWeight: "bold" }}>
+            The "Aggressive" setting is still a WIP.
+          </div>
         </div>
       </div>
 
@@ -209,6 +214,29 @@ export default function Settings({
         />
         <div className="description">
           Angles below this appear smooth, above appear sharp
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Preview Color:</label>
+        <select
+          value={settings.previewColor}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              previewColor: e.target.value,
+            })
+          }
+        >
+          {colors.map((color) => (
+            <option key={color.value} value={color.value}>
+              {color.name}
+            </option>
+          ))}
+        </select>
+        <div className="description">
+          This is only for preview. The exported model is always white; change
+          colors in-game.
         </div>
       </div>
 
