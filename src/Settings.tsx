@@ -2,6 +2,17 @@ import { MathUtils, Shape, Mesh } from "three";
 import { GLTFExporter } from "three-stdlib";
 import ShapeSelector from "./ShapeSelector";
 
+interface GLTFResult {
+  asset?: {
+    generator?: string;
+  };
+  materials?: Array<{
+    pbrMetallicRoughness?: {
+      baseColorFactor?: number[];
+    };
+  }>;
+}
+
 const colors = [
   { value: "#FFFFFF", name: "White" },
   { value: "#B22222", name: "Red" },
@@ -11,28 +22,32 @@ const colors = [
   { value: "#4169E1", name: "Blue" },
 ];
 
+
 function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
     const exporter = new GLTFExporter();
     exporter.parse(
       meshRef.current,
-      (gltf) => {
+      (gltf: ArrayBuffer | { [key: string]: unknown }) => {
+        // With binary: false, gltf will always be an object, never ArrayBuffer
+        const gltfObj = gltf as GLTFResult;
+        
         // Set the generator field in the asset metadata
-        if (!gltf.asset) {
-          gltf.asset = {};
+        if (!gltfObj.asset) {
+          gltfObj.asset = {};
         }
-        gltf.asset.generator = "Woodcutter by https://garbo.succus.games/";
+        gltfObj.asset.generator = "Woodcutter by https://garbo.succus.games/";
 
         // Set material color to white for export
-        if (gltf.materials && gltf.materials.length > 0) {
-          gltf.materials.forEach((material) => {
+        if (gltfObj.materials && gltfObj.materials.length > 0) {
+          gltfObj.materials.forEach((material) => {
             if (material.pbrMetallicRoughness) {
               material.pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1]; // white
             }
           });
         }
 
-        const blob = new Blob([JSON.stringify(gltf, null, 2)], {
+        const blob = new Blob([JSON.stringify(gltfObj, null, 2)], {
           type: "application/json",
         });
         const url = URL.createObjectURL(blob);
@@ -45,6 +60,7 @@ function exportGltf(meshRef: React.RefObject<Mesh>) {
       (error) => {
         console.error("Error exporting GLTF:", error);
       },
+      { binary: false },
     );
   }
 }
