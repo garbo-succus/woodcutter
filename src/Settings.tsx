@@ -102,8 +102,10 @@ export default function Settings({
         </select>
         <div className="description">
           Changes how the imported shape is tidied up.
-          <div style={{ paddingTop: "10px", fontWeight: "bold" }}>
-            The "Aggressive" setting is still a WIP.
+          <div
+            style={{ paddingTop: "10px", fontSize: "12px", color: "darkred" }}
+          >
+            <b>TODO:</b> The "Aggressive" setting is incomplete
           </div>
         </div>
       </div>

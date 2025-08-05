@@ -133,36 +133,41 @@ export default function ShapeSelector({
   };
 
   return (
-    <div className="field">
-      <label>
-        Shape image{" "}
-        <a href="https://www.w3schools.com/graphics/svg_intro.asp">(SVG)</a>:
-      </label>
-      <div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".svg"
-          onChange={handleFileSelect}
-          style={{ display: "none" }}
-        />
-        <button type="button" onClick={() => fileInputRef.current?.click()}>
-          Import
-        </button>
-      </div>
-      {svgPreview && (
-        <div className="svg-preview">
-          <img
-            src={svgPreview}
-            alt="SVG Preview"
-            style={{
-              width: "100px",
-              height: "100px",
-              border: "1px solid #ccc",
-            }}
+    <>
+      <div className="field">
+        <label>
+          Shape image{" "}
+          <a href="https://www.w3schools.com/graphics/svg_intro.asp">(SVG)</a>:
+        </label>
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".svg"
+            onChange={handleFileSelect}
+            style={{ display: "none" }}
           />
+          <button type="button" onClick={() => fileInputRef.current?.click()}>
+            Import
+          </button>
         </div>
-      )}
-    </div>
+        {svgPreview && (
+          <div className="svg-preview">
+            <img
+              src={svgPreview}
+              alt="SVG Preview"
+              style={{
+                width: "100px",
+                height: "100px",
+                border: "1px solid #ccc",
+              }}
+            />
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize: "12px", color: "darkred" }}>
+        <b>TODO:</b> Only the first shape in the SVG is used.
+      </div>
+    </>
   );
 }
