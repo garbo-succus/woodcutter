@@ -1,5 +1,6 @@
-import { Box3, Vector3, Mesh } from "three";
+import { Box3, Vector3, Mesh, Material, MeshStandardMaterial, MeshPhysicalMaterial } from "three";
 import { GLTFExporter } from "three-stdlib";
+import React from "react";
 
 export function exportGltf(meshRef: React.RefObject<Mesh>) {
   if (meshRef.current) {
@@ -19,16 +20,16 @@ export function exportGltf(meshRef: React.RefObject<Mesh>) {
 
     // Clone materials and set colors to white for export
     if (Array.isArray(mesh.material)) {
-      mesh.material = mesh.material.map((material: any) => {
+      mesh.material = mesh.material.map((material: Material) => {
         const cloned = material.clone();
-        if (cloned.color) {
+        if (cloned instanceof MeshStandardMaterial || cloned instanceof MeshPhysicalMaterial) {
           cloned.color.setHex(0xffffff);
         }
         return cloned;
       });
     } else {
-      const cloned = (mesh.material as any).clone();
-      if (cloned.color) {
+      const cloned = (mesh.material as Material).clone();
+      if (cloned instanceof MeshStandardMaterial || cloned instanceof MeshPhysicalMaterial) {
         cloned.color.setHex(0xffffff);
       }
       mesh.material = cloned;

@@ -914,6 +914,10 @@ export default function Settings({
         onSettingsChange={onSettingsChange}
       />
 
+      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
+        <b>TODO:</b> textures should be compressed with avif not png
+      </div>
+
       <div className="button-container">
         <button type="button" onClick={() => onSettingsChange(defaultSettings)}>
           Reset
