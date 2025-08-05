@@ -59,7 +59,9 @@ function svgToShape(svgText: string): Shape | null {
       // Convert the first shape from the path
       const shapes = SVGLoader.createShapes(path);
       if (shapes.length > 0) {
-        return shapes[0];
+        const rawShape = shapes[0];
+        // Center the imported shape
+        return centerShape(rawShape);
       }
     }
 
@@ -68,6 +70,36 @@ function svgToShape(svgText: string): Shape | null {
     console.error("Error parsing SVG:", error);
     return null;
   }
+}
+
+// Function to center a shape around the origin
+function centerShape(originalShape: Shape): Shape {
+  const points = originalShape.getPoints();
+  if (points.length === 0) return originalShape;
+
+  // Calculate bounding box
+  const box = new Box2();
+  points.forEach((point) => box.expandByPoint(point));
+
+  const center = box.getCenter(new Vector2());
+
+  // Create new centered shape
+  const centeredShape = new Shape();
+  if (points.length > 0) {
+    const firstPoint = points[0];
+    const centeredX = firstPoint.x - center.x;
+    const centeredY = firstPoint.y - center.y;
+    centeredShape.moveTo(centeredX, centeredY);
+
+    for (let i = 1; i < points.length; i++) {
+      const point = points[i];
+      const centeredX = point.x - center.x;
+      const centeredY = point.y - center.y;
+      centeredShape.lineTo(centeredX, centeredY);
+    }
+  }
+
+  return centeredShape;
 }
 
 export default function ShapeSelector({
