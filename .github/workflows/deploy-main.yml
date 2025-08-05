@@ -1,0 +1,52 @@
+name: Deploy main
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linter
+        run: pnpm run lint
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Build project
+        shell: bash
+        env:
+          VITE_BUILD_DATE: ${{ github.event.repository.updated_at }}
+          VITE_GITHUB_SHA: ${{ github.sha }}
+          VITE_GITHUB_BRANCH: ${{ github.ref_name }}
+          NO_COLOR: 1 # Don't include ANSI color codes in the build output
+        run: |
+          echo "# Build Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm run build 2>&1 | tee -a $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          command: pages deploy dist --project-name=woodcutter-gs --commit-dirty=true
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
