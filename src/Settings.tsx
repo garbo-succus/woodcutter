@@ -138,6 +138,7 @@ export const defaultSettings = {
   thickness: 0,
   reflectivity: 0.5,
   materialInputType: "range",
+  maxTextureSize: 256,
 };
 
 export type SettingsType = typeof defaultSettings;
@@ -671,6 +672,24 @@ function OtherSection({ settings, onSettingsChange }: SectionProps) {
           Shows a background underneath the model.
         </div>
       </div>
+
+      <div className="field">
+        <label>Max Texture Size:</label>
+        <select
+          value={settings.maxTextureSize}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              maxTextureSize: parseInt(e.target.value),
+            })
+          }
+        >
+          <option value={128}>128px</option>
+          <option value={256}>256px</option>
+          <option value={512}>512px</option>
+        </select>
+        <div className="description">Texture size in the exported model.</div>
+      </div>
     </CollapsibleSection>
   );
 }
@@ -701,7 +720,13 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
             })
           }
         />
-        <div className="description">The exported model is always white.</div>
+        <div className="description">
+          The exported model is always white. Change it in-game with{" "}
+          <code>
+            {"{ "}color: '{settings.previewColor}'{" }"}
+          </code>
+          .
+        </div>
       </div>
 
       <div className="field">
@@ -919,7 +944,12 @@ export default function Settings({
           Reset
         </button>
 
-        <button type="button" onClick={() => exportGltf(meshRef)}>
+        <button
+          type="button"
+          onClick={() =>
+            exportGltf(meshRef, { maxTextureSize: settings.maxTextureSize })
+          }
+        >
           Download file
         </button>
       </div>

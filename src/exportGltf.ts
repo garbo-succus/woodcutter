@@ -10,7 +10,11 @@ import { GLTFExporter } from "three-stdlib";
 import React from "react";
 import { transformGltf } from "./transformGltf";
 
-export async function exportGltf(meshRef: React.RefObject<Mesh>) {
+interface ExportOptions {
+  maxTextureSize?: number;
+}
+
+export async function exportGltf(meshRef: React.RefObject<Mesh>, options: ExportOptions = {}) {
   if (meshRef.current) {
     const mesh = meshRef.current;
 
@@ -73,7 +77,7 @@ export async function exportGltf(meshRef: React.RefObject<Mesh>) {
         mesh.scale.copy(originalScale);
         mesh.material = originalMaterials;
       },
-      { binary: true, maxTextureSize: 256 },
+      { binary: true, maxTextureSize: options.maxTextureSize ?? 256 },
     );
   }
 }
