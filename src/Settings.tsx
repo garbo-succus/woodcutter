@@ -118,7 +118,7 @@ export const defaultSettings = {
   bevelSegments: 4,
   maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
-  showBackgroundShape: true,
+  showBackgroundShape: false,
   cleanupMethod: 1,
   clearcoat: 0,
   clearcoatRoughness: 0.1,
@@ -463,7 +463,7 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
 
   return (
     <CollapsibleSection
-      title="Transmission"
+      title="Transparency"
       isExpanded={expanded}
       onToggle={() => setExpanded(!expanded)}
       type="h4"

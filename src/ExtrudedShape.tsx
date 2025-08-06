@@ -1,6 +1,6 @@
 import { useLoader } from "@react-three/fiber";
 import { type ComponentProps, forwardRef, useRef, useEffect } from "react";
-import { Shape, Mesh, ExtrudeGeometry, TextureLoader } from "three";
+import { Shape, Mesh, ExtrudeGeometry, TextureLoader, FrontSide, DoubleSide } from "three";
 import * as BufferGeometryUtils from "three-stdlib";
 import type { SettingsType } from "./Settings";
 
@@ -55,6 +55,7 @@ const Material = ({
       {...props}
       map={map}
       normalMap={normalMap}
+      side={props.transmission === 0 ? FrontSide : DoubleSide}
       iridescenceThicknessRange={[0, iridescenceThickness]}
     />
   );
