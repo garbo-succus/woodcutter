@@ -710,10 +710,6 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
       onToggle={() => setExpanded(!expanded)}
       type="h3"
     >
-      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
-        <b>TODO:</b> edge & end grain textures not applied to all faces.
-      </div>
-
       <div className="field">
         <label>Preview Color:</label>
         <input
