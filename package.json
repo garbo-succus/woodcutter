@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "playwright test"
+    "test": "playwright test --reporter=list"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.2.1",
