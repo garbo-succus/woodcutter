@@ -12,8 +12,15 @@ import {
 import { MeshoptSimplifier } from "meshoptimizer";
 import { ALL_EXTENSIONS, EXTTextureAVIF } from "@gltf-transform/extensions";
 
-// Preemptively start downloading the AVIF encoder
-const avifEncoderPromise = import("@jsquash/avif");
+// Preemptively download AVIF encoder
+(async () => {
+  try {
+    const { encode } = await import("@jsquash/avif");
+    await encode(new ImageData(1, 1));
+  } catch (e) {
+    void e;
+  }
+})();
 
 const pngToAvif = async (png: Uint8Array) => {
   // Create canvas to get ImageData from PNG
@@ -33,8 +40,8 @@ const pngToAvif = async (png: Uint8Array) => {
 
   if (!imageData) return png;
 
-  // Convert to AVIF using preemptively loaded module
-  const { encode } = await avifEncoderPromise;
+  // Convert to AVIF
+  const { encode } = await import("@jsquash/avif");
   const output = await encode(imageData, { quality: 60 });
   return new Uint8Array(output);
 };
