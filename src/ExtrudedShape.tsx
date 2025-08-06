@@ -1,6 +1,5 @@
 import { useLoader } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
-import React from "react";
+import { type ComponentProps, forwardRef, useRef, useEffect } from "react";
 import { Shape, Mesh, ExtrudeGeometry, TextureLoader } from "three";
 import * as BufferGeometryUtils from "three-stdlib";
 import type { SettingsType } from "./Settings";
@@ -8,7 +7,7 @@ import type { SettingsType } from "./Settings";
 // 1x1 white PNG for placeholder textures
 const EMPTY_TEXTURE_URL = "1px.png";
 
-const BackgroundShape = (props: React.ComponentProps<"group">) => {
+const BackgroundShape = (props: ComponentProps<"group">) => {
   return (
     <group {...props}>
       <mesh position={[-0.25, -0.05, 0]}>
@@ -29,23 +28,41 @@ interface ExtrudedShapeProps {
   color: string;
 }
 
-const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
+interface MaterialProps extends ComponentProps<"meshPhysicalMaterial"> {
+  mapSrc?: string;
+  normalMapSrc?: string;
+  iridescenceThickness: number;
+}
+
+const Material = ({
+  mapSrc = EMPTY_TEXTURE_URL,
+  normalMapSrc = EMPTY_TEXTURE_URL,
+  iridescenceThickness,
+  ...props
+}: MaterialProps) => {
+  const [map, normalMap] = useLoader(TextureLoader, [mapSrc, normalMapSrc]);
+
+  // Configure texture wrapping and repeat
+  useEffect(() => {
+    [map, normalMap].forEach((texture) => {
+      texture.wrapS = texture.wrapT = 1000; // RepeatWrapping
+      texture.repeat.set(2, 2);
+    });
+  }, [map, normalMap]);
+
+  return (
+    <meshPhysicalMaterial
+      {...props}
+      map={map}
+      normalMap={normalMap}
+      iridescenceThicknessRange={[0, iridescenceThickness]}
+    />
+  );
+};
+
+const ExtrudedShape = forwardRef<Mesh, ExtrudedShapeProps>(
   ({ shape, settings, color }, ref) => {
     const geometryRef = useRef<ExtrudeGeometry>(null!);
-
-    // Load textures, replacing undefined URLs with placeholder texture
-    const textures = useLoader(
-      TextureLoader,
-      settings.textureUrls.map((url) => url || EMPTY_TEXTURE_URL),
-    );
-
-    // Configure texture wrapping and repeat
-    useEffect(() => {
-      textures.forEach((texture) => {
-        texture.wrapS = texture.wrapT = 1000; // RepeatWrapping
-        texture.repeat.set(2, 2);
-      });
-    }, [textures]);
 
     useEffect(() => {
       if (geometryRef.current && settings.maxSmoothAngle > 0) {
@@ -58,28 +75,18 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
 
     const offset = settings.depth + settings.bevelThickness;
 
-    const t0 = [
-      settings.textureUrls[0] ? textures[0] : null,
-      settings.textureUrls[1] ? textures[1] : null,
-    ];
-    const t1 =
-      settings.textureUrls[2] || settings.textureUrls[3]
-        ? [
-            settings.textureUrls[2] ? textures[2] : null,
-            settings.textureUrls[3] ? textures[3] : null,
-          ]
-        : t0;
+    const showEdgeTextures = settings.textureUrls[2] || settings.textureUrls[3];
 
     return (
       <group position={[0, offset / 2, 0]}>
         <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
           <extrudeGeometry ref={geometryRef} args={[shape, settings]} />
 
-          <meshPhysicalMaterial
+          <Material
             attach={"material-0"}
+            mapSrc={settings.textureUrls[0]}
+            normalMapSrc={settings.textureUrls[1]}
             color={color}
-            map={t0[0]}
-            normalMap={t0[1]}
             clearcoat={settings.clearcoat}
             clearcoatRoughness={settings.clearcoatRoughness}
             roughness={settings.roughness}
@@ -89,7 +96,7 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
             ior={settings.ior}
             iridescence={settings.iridescence}
             iridescenceIOR={settings.iridescenceIOR}
-            iridescenceThicknessRange={[0, settings.iridescenceThickness]}
+            iridescenceThickness={settings.iridescenceThickness}
             sheen={settings.sheen}
             sheenRoughness={settings.sheenRoughness}
             sheenColor={settings.sheenColor}
@@ -98,12 +105,19 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
           />
-
-          <meshPhysicalMaterial
-            attach="material-1"
+          <Material
+            attach={"material-1"}
+            mapSrc={
+              showEdgeTextures
+                ? settings.textureUrls[2]
+                : settings.textureUrls[0]
+            }
+            normalMapSrc={
+              showEdgeTextures
+                ? settings.textureUrls[3]
+                : settings.textureUrls[1]
+            }
             color={color}
-            map={t1[0]}
-            normalMap={t1[1]}
             clearcoat={settings.clearcoat}
             clearcoatRoughness={settings.clearcoatRoughness}
             roughness={settings.roughness}
@@ -113,7 +127,7 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
             ior={settings.ior}
             iridescence={settings.iridescence}
             iridescenceIOR={settings.iridescenceIOR}
-            iridescenceThicknessRange={[0, settings.iridescenceThickness]}
+            iridescenceThickness={settings.iridescenceThickness}
             sheen={settings.sheen}
             sheenRoughness={settings.sheenRoughness}
             sheenColor={settings.sheenColor}

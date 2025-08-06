@@ -111,10 +111,10 @@ function centerShape(originalShape: Shape): Shape {
 export const defaultSettings = {
   bevelEnabled: true,
   depth: 0.2,
-  bevelThickness: 0.05,
+  bevelThickness: 0.02,
   steps: 1,
-  bevelSize: 0.05,
-  bevelOffset: -0.05,
+  bevelSize: 0.02,
+  bevelOffset: -0.02,
   bevelSegments: 4,
   maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
