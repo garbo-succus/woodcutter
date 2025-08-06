@@ -626,7 +626,12 @@ interface TextureInputProps {
   onDelete: () => void;
 }
 
-function TextureInput({ label, textureUrl, onFileChange, onDelete }: TextureInputProps) {
+function TextureInput({
+  label,
+  textureUrl,
+  onFileChange,
+  onDelete,
+}: TextureInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -648,12 +653,8 @@ function TextureInput({ label, textureUrl, onFileChange, onDelete }: TextureInpu
       >
         {label}
       </div>
-      <div
-        style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
-      >
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-        >
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <input
             ref={fileInputRef}
             type="file"
@@ -731,7 +732,6 @@ function TexturesSection({ settings, onSettingsChange }: SectionProps) {
       textureUrls: newTextureUrls,
     });
   };
-
 
   return (
     <CollapsibleSection
@@ -1135,7 +1135,18 @@ export default function Settings({
       />
 
       <div className="button-container">
-        <button type="button" onClick={() => onSettingsChange(defaultSettings)}>
+        <button
+          type="button"
+          onClick={() => {
+            // Revoke any existing blob URLs before resetting
+            settings.textureUrls.forEach((url) => {
+              if (url && url.startsWith("blob:")) {
+                URL.revokeObjectURL(url);
+              }
+            });
+            onSettingsChange(defaultSettings);
+          }}
+        >
           Reset
         </button>
 
