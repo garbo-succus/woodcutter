@@ -133,7 +133,7 @@ export default function ShapeSelector({
     if (!file || !file.type.includes("svg")) return;
 
     // Store filename (remove .svg extension and add .glb)
-    const baseFilename = file.name.replace(/\.svg$/i, '');
+    const baseFilename = file.name.replace(/\.svg$/i, "");
     onFilenameChange(`${baseFilename}.glb`);
 
     const text = await file.text();
@@ -153,41 +153,37 @@ export default function ShapeSelector({
   };
 
   return (
-    <>
-      <div style={{ fontSize: "12px", color: "darkred", paddingBottom: "8px" }}>
-        <b>TODO:</b> Only the first shape in the SVG is used.
+    <div className="field">
+      <label>
+        Shape image{" "}
+        <a href="https://www.w3schools.com/graphics/svg_intro.asp">(SVG)</a>:
+      </label>
+      <div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".svg"
+          onChange={handleFileSelect}
+          style={{ display: "none" }}
+        />
+        <button type="button" onClick={() => fileInputRef.current?.click()}>
+          Import
+        </button>
       </div>
-      <div className="field">
-        <label>
-          Shape image{" "}
-          <a href="https://www.w3schools.com/graphics/svg_intro.asp">(SVG)</a>:
-        </label>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".svg"
-            onChange={handleFileSelect}
-            style={{ display: "none" }}
+      <div className="description">The first path will be converted to 3D.</div>
+      {svgPreview && (
+        <div className="svg-preview">
+          <img
+            src={svgPreview}
+            alt="SVG Preview"
+            style={{
+              width: "100px",
+              height: "100px",
+              border: "1px solid #ccc",
+            }}
           />
-          <button type="button" onClick={() => fileInputRef.current?.click()}>
-            Import
-          </button>
         </div>
-        {svgPreview && (
-          <div className="svg-preview">
-            <img
-              src={svgPreview}
-              alt="SVG Preview"
-              style={{
-                width: "100px",
-                height: "100px",
-                border: "1px solid #ccc",
-              }}
-            />
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }

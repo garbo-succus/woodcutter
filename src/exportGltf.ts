@@ -15,7 +15,10 @@ interface ExportOptions {
   filename?: string;
 }
 
-export async function exportGltf(meshRef: React.RefObject<Mesh>, options: ExportOptions = {}) {
+export async function exportGltf(
+  meshRef: React.RefObject<Mesh>,
+  options: ExportOptions = {},
+) {
   if (meshRef.current) {
     const mesh = meshRef.current;
 
