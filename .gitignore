@@ -6,7 +6,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Playwright files
 playwright-report
+downloads
+test-results
 
 node_modules
 dist

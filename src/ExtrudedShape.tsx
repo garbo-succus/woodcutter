@@ -5,6 +5,9 @@ import { Shape, Mesh, ExtrudeGeometry, TextureLoader } from "three";
 import * as BufferGeometryUtils from "three-stdlib";
 import type { SettingsType } from "./Settings";
 
+// 1x1 white PNG for placeholder textures
+const EMPTY_TEXTURE_URL = "1px.png";
+
 const BackgroundShape = (props: React.ComponentProps<"group">) => {
   return (
     <group {...props}>
@@ -30,27 +33,19 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
   ({ shape, settings, color }, ref) => {
     const geometryRef = useRef<ExtrudeGeometry>(null!);
 
-    // Load textures
-    const [endGrainDiffuse, endGrainNormal, edgeGrainDiffuse, edgeGrainNormal] =
-      useLoader(TextureLoader, [
-        "/endGrain_diffuse.jpg",
-        "/endGrain_normals.jpg",
-        "/edgeGrain_diffuse.jpg",
-        "/edgeGrain_normals.jpg",
-      ]);
+    // Load textures, replacing undefined URLs with placeholder texture
+    const textures = useLoader(
+      TextureLoader,
+      settings.textureUrls.map((url) => url || EMPTY_TEXTURE_URL),
+    );
 
     // Configure texture wrapping and repeat
     useEffect(() => {
-      [
-        endGrainDiffuse,
-        endGrainNormal,
-        edgeGrainDiffuse,
-        edgeGrainNormal,
-      ].forEach((texture) => {
+      textures.forEach((texture) => {
         texture.wrapS = texture.wrapT = 1000; // RepeatWrapping
         texture.repeat.set(2, 2);
       });
-    }, [endGrainDiffuse, endGrainNormal, edgeGrainDiffuse, edgeGrainNormal]);
+    }, [textures]);
 
     useEffect(() => {
       if (geometryRef.current && settings.maxSmoothAngle > 0) {
@@ -63,15 +58,28 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
 
     const offset = settings.depth + settings.bevelThickness;
 
+    const t0 = [
+      settings.textureUrls[0] ? textures[0] : null,
+      settings.textureUrls[1] ? textures[1] : null,
+    ];
+    const t1 =
+      settings.textureUrls[2] || settings.textureUrls[3]
+        ? [
+            settings.textureUrls[2] ? textures[2] : null,
+            settings.textureUrls[3] ? textures[3] : null,
+          ]
+        : t0;
+
     return (
       <group position={[0, offset / 2, 0]}>
         <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
           <extrudeGeometry ref={geometryRef} args={[shape, settings]} />
+
           <meshPhysicalMaterial
-            attach="material-0"
+            attach={"material-0"}
             color={color}
-            map={endGrainDiffuse}
-            normalMap={endGrainNormal}
+            map={t0[0]}
+            normalMap={t0[1]}
             clearcoat={settings.clearcoat}
             clearcoatRoughness={settings.clearcoatRoughness}
             roughness={settings.roughness}
@@ -90,11 +98,12 @@ const ExtrudedShape = React.forwardRef<Mesh, ExtrudedShapeProps>(
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
           />
+
           <meshPhysicalMaterial
             attach="material-1"
             color={color}
-            map={edgeGrainDiffuse}
-            normalMap={edgeGrainNormal}
+            map={t1[0]}
+            normalMap={t1[1]}
             clearcoat={settings.clearcoat}
             clearcoatRoughness={settings.clearcoatRoughness}
             roughness={settings.roughness}

@@ -1,5 +1,5 @@
 import { MathUtils, Shape, Mesh, Box2, Vector2 } from "three";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEffectOnce } from "react-use";
 import { SVGLoader } from "three-stdlib";
 import ShapeSelector from "./ShapeSelector";
@@ -139,6 +139,12 @@ export const defaultSettings = {
   reflectivity: 0.5,
   materialInputType: "range",
   maxTextureSize: 256,
+  textureUrls: [
+    "/endGrain_diffuse.jpg",
+    "/endGrain_normals.jpg",
+    "/edgeGrain_diffuse.jpg",
+    "/edgeGrain_normals.jpg",
+  ] as (string | undefined)[],
 };
 
 export type SettingsType = typeof defaultSettings;
@@ -613,6 +619,223 @@ function SheenSection({ settings, onSettingsChange }: SectionProps) {
   );
 }
 
+interface TextureInputProps {
+  label: string;
+  textureUrl?: string;
+  onFileChange: (file: File | null) => void;
+  onDelete: () => void;
+}
+
+function TextureInput({ label, textureUrl, onFileChange, onDelete }: TextureInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div
+      style={{
+        border: "1px solid #ddd",
+        padding: "10px",
+        borderRadius: "4px",
+        minWidth: "120px",
+        backgroundColor: "#f9f9f9",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "12px",
+          fontWeight: "bold",
+          marginBottom: "8px",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+      >
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              onFileChange(file);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ padding: "2px 8px", fontSize: "11px" }}
+          >
+            Import
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            style={{ padding: "2px 8px", fontSize: "11px" }}
+          >
+            Delete
+          </button>
+        </div>
+        {textureUrl && (
+          <img
+            src={textureUrl}
+            alt={`${label} preview`}
+            style={{
+              width: "40px",
+              height: "40px",
+              objectFit: "cover",
+              border: "1px solid #ccc",
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TexturesSection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  const handleFileChange = (index: number, file: File | null) => {
+    const newTextureUrls = [...settings.textureUrls];
+
+    // Release old blob URL if it exists
+    if (newTextureUrls[index] && newTextureUrls[index]?.startsWith("blob:")) {
+      URL.revokeObjectURL(newTextureUrls[index]!);
+    }
+
+    // Create new blob URL or set to undefined
+    newTextureUrls[index] = file ? URL.createObjectURL(file) : undefined;
+
+    onSettingsChange({
+      ...settings,
+      textureUrls: newTextureUrls,
+    });
+  };
+
+  const handleDelete = (index: number) => {
+    const newTextureUrls = [...settings.textureUrls];
+
+    // Release blob URL if it exists
+    if (newTextureUrls[index] && newTextureUrls[index]?.startsWith("blob:")) {
+      URL.revokeObjectURL(newTextureUrls[index]!);
+    }
+
+    newTextureUrls[index] = undefined;
+
+    onSettingsChange({
+      ...settings,
+      textureUrls: newTextureUrls,
+    });
+  };
+
+
+  return (
+    <CollapsibleSection
+      title="Textures"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      {/* End Textures Section */}
+      <div style={{ marginBottom: "20px" }}>
+        <h5 style={{ margin: "0 0 10px 0", fontSize: "14px" }}>Main</h5>
+        <div
+          className="description"
+          style={{ marginBottom: "10px", fontSize: "11px" }}
+        >
+          Textures to use over the whole model. Diffuse is for color variaton,
+          while normals are for bumps.
+        </div>
+        <div style={{ display: "flex", gap: "15px" }}>
+          <TextureInput
+            label="Diffuse"
+            textureUrl={settings.textureUrls[0]}
+            onFileChange={(file) => handleFileChange(0, file)}
+            onDelete={() => handleDelete(0)}
+          />
+          <TextureInput
+            label="Normals"
+            textureUrl={settings.textureUrls[1]}
+            onFileChange={(file) => handleFileChange(1, file)}
+            onDelete={() => handleDelete(1)}
+          />
+        </div>
+      </div>
+
+      {/* Edge Textures Section */}
+      <div>
+        <h5 style={{ margin: "0 0 5px 0", fontSize: "14px" }}>Edge</h5>
+        <div
+          className="description"
+          style={{ marginBottom: "10px", fontSize: "11px" }}
+        >
+          Edge textures are optional. If provided, they will be used on the
+          sides of the model
+        </div>
+        <div style={{ display: "flex", gap: "15px" }}>
+          <TextureInput
+            label="Diffuse"
+            textureUrl={settings.textureUrls[2]}
+            onFileChange={(file) => handleFileChange(2, file)}
+            onDelete={() => handleDelete(2)}
+          />
+          <TextureInput
+            label="Normals"
+            textureUrl={settings.textureUrls[3]}
+            onFileChange={(file) => handleFileChange(3, file)}
+            onDelete={() => handleDelete(3)}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "10px" }} />
+
+      {/* Texture Settings */}
+      <div className="field">
+        <label>Smoothing Angle (°):</label>
+        <input
+          type="number"
+          step={1}
+          min={0}
+          max={180}
+          value={Math.round(MathUtils.radToDeg(settings.maxSmoothAngle))}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              maxSmoothAngle: MathUtils.degToRad(parseFloat(e.target.value)),
+            })
+          }
+        />
+        <div className="description">
+          Angles below this appear smooth, above appear sharp.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Max Texture Size:</label>
+        <select
+          value={settings.maxTextureSize}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              maxTextureSize: parseInt(e.target.value),
+            })
+          }
+        >
+          <option value={128}>128px</option>
+          <option value={256}>256px</option>
+          <option value={512}>512px</option>
+        </select>
+        <div className="description">Texture size in the exported model.</div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
 function OtherSection({ settings, onSettingsChange }: SectionProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -643,26 +866,6 @@ function OtherSection({ settings, onSettingsChange }: SectionProps) {
       </div>
 
       <div className="field">
-        <label>Smoothing Angle (°):</label>
-        <input
-          type="number"
-          step={1}
-          min={0}
-          max={180}
-          value={Math.round(MathUtils.radToDeg(settings.maxSmoothAngle))}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              maxSmoothAngle: MathUtils.degToRad(parseFloat(e.target.value)),
-            })
-          }
-        />
-        <div className="description">
-          Angles below this appear smooth, above appear sharp.
-        </div>
-      </div>
-
-      <div className="field">
         <label>Show Background:</label>
         <input
           type="checkbox"
@@ -677,24 +880,6 @@ function OtherSection({ settings, onSettingsChange }: SectionProps) {
         <div className="description">
           Shows a background underneath the model.
         </div>
-      </div>
-
-      <div className="field">
-        <label>Max Texture Size:</label>
-        <select
-          value={settings.maxTextureSize}
-          onChange={(e) =>
-            onSettingsChange({
-              ...settings,
-              maxTextureSize: parseInt(e.target.value),
-            })
-          }
-        >
-          <option value={128}>128px</option>
-          <option value={256}>256px</option>
-          <option value={512}>512px</option>
-        </select>
-        <div className="description">Texture size in the exported model.</div>
       </div>
     </CollapsibleSection>
   );
@@ -786,6 +971,11 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
           Controls the strength of reflections on the surface.
         </div>
       </div>
+
+      <TexturesSection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
 
       <ClearcoatSection
         settings={settings}
