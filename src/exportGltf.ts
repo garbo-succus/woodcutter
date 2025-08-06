@@ -73,7 +73,7 @@ export async function exportGltf(meshRef: React.RefObject<Mesh>) {
         mesh.scale.copy(originalScale);
         mesh.material = originalMaterials;
       },
-      { binary: true },
+      { binary: true, maxTextureSize: 256 },
     );
   }
 }

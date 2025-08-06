@@ -1,5 +1,4 @@
 import { WebIO } from "@gltf-transform/core";
-// import { KHRDracoMeshCompression } from "@gltf-transform/extensions";
 import {
   prune,
   dedup,
@@ -11,44 +10,61 @@ import {
   textureCompress,
 } from "@gltf-transform/functions";
 import { MeshoptSimplifier } from "meshoptimizer";
-import {
-  ALL_EXTENSIONS,
-  // EXTTextureAVIF,
-  EXTTextureWebP,
-} from "@gltf-transform/extensions";
-// import draco3d from "draco3dgltf";
+import { ALL_EXTENSIONS, EXTTextureAVIF } from "@gltf-transform/extensions";
+import { encode } from "@jsquash/avif";
 
-// check if browser supports exporting to this image mime type
-const checkSupport = (mimeType: string) =>
-  new Promise((resolve) => {
-    const canvas = document.createElement("canvas");
-    canvas.toBlob((blob: Blob | null) => {
-      resolve(blob?.type === mimeType);
-    }, mimeType);
-  });
+const pngToAvif = async (png: Uint8Array) => {
+  // Create canvas to get ImageData from PNG
+  const img = new Image();
+  const blob = new Blob([png], { type: "image/png" });
+  img.src = URL.createObjectURL(blob);
+  await new Promise((resolve) => (img.onload = resolve));
 
-const io = new WebIO()
-  // { credentials: "include" }
-  .registerExtensions(ALL_EXTENSIONS)
-  // .registerExtensions([KHRDracoMeshCompression])
-  .registerDependencies({
-    // "draco3d.encoder": await draco3d.createEncoderModule(),
-    // "draco3d.decoder": DracoDecoderModule,
-    "draco3d.encoder": new DracoEncoderModule(),
-  });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  ctx?.drawImage(img, 0, 0);
+
+  const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+  URL.revokeObjectURL(img.src);
+
+  if (!imageData) return png;
+
+  // Convert to AVIF
+  const output = await encode(imageData, { quality: 60 });
+  return new Uint8Array(output);
+};
+
+const fakeSharpStub = (srcImage: Uint8Array) => {
+  const instance = new Proxy(
+    {},
+    {
+      get(_, prop) {
+        if (prop === "toBuffer") {
+          return () => pngToAvif(srcImage);
+        }
+        return () => instance;
+      },
+    },
+  );
+  return instance;
+};
+
+const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
+  "draco3d.encoder": new DracoEncoderModule(),
+});
 
 export const transformGltf = async (gltfRaw: ArrayBuffer) => {
   const gltf = new Uint8Array(gltfRaw);
   const document = await io.readBinary(gltf);
-
-  const avif = await checkSupport("image/avif");
-  const webp = await checkSupport("image/webp");
-
+  document.createExtension(EXTTextureAVIF);
   await MeshoptSimplifier.ready;
-  await document.createExtension(EXTTextureWebP);
-  // await document.createExtension(EXTTextureAVIF);
-
   await document.transform(
+    textureCompress({
+      encoder: fakeSharpStub,
+      targetFormat: "avif",
+    }),
     center(),
     dedup(),
     prune(),
@@ -56,15 +72,6 @@ export const transformGltf = async (gltfRaw: ArrayBuffer) => {
     weld({}),
     simplify({ simplifier: MeshoptSimplifier, ratio: 0, error: 0.001 }),
     draco({ method: "edgebreaker" }),
-
-    textureCompress({
-      // encoder: sharp,
-      // quality: 0.8, // only supported by sharp
-
-      targetFormat: avif ? "avif" : webp ? "webp" : "jpeg", // error: 'image/webp' MIME type requires an extension
-      // targetFormat: "jpeg",
-      // resize: [512, 512],
-    }),
   );
 
   const glb = await io.writeBinary(document);
