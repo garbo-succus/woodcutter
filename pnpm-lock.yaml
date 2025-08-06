@@ -26,9 +26,6 @@ importers:
       '@types/three':
         specifier: ^0.179.0
         version: 0.179.0
-      draco3dgltf:
-        specifier: ^1.5.7
-        version: 1.5.7
       meshoptimizer:
         specifier: ^0.24.0
         version: 0.24.0
@@ -51,6 +48,9 @@ importers:
       '@eslint/js':
         specifier: ^9.30.1
         version: 9.32.0
+      '@types/draco3d':
+        specifier: ^1.4.10
+        version: 1.4.10
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.9
@@ -921,9 +921,6 @@ packages:
 
   draco3d@1.5.7:
     resolution: {integrity: sha512-m6WCKt/erDXcw+70IJXnG7M3awwQPAsZvJGX5zY7beBqpELw6RDGkYVU0W43AFxye4pDZ5i2Lbyc/NNGqwjUVQ==}
-
-  draco3dgltf@1.5.7:
-    resolution: {integrity: sha512-LeqcpmoHIyYUi0z70/H3tMkGj8QhqVxq6FJGPjlzR24BNkQ6jyMheMvFKJBI0dzGZrEOUyQEmZ8axM1xRrbRiw==}
 
   error-stack-parser@2.1.4:
     resolution: {integrity: sha512-Sk5V6wVazPhq5MhpO+AUxJn5x7XSXGl1R93Vn7i+zS15KDVxQijejNCrz8340/2bgLBjR9GtEG8ZVKONDjcqGQ==}
@@ -2334,8 +2331,6 @@ snapshots:
   detect-libc@2.0.4: {}
 
   draco3d@1.5.7: {}
-
-  draco3dgltf@1.5.7: {}
 
   error-stack-parser@2.1.4:
     dependencies:
