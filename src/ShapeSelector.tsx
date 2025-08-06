@@ -11,6 +11,7 @@ interface ShapeSelectorProps {
   onSvgPreviewChange: (preview: string) => void;
   originalShape: Shape | null;
   onOriginalShapeChange: (shape: Shape | null) => void;
+  onFilenameChange: (filename: string) => void;
 }
 
 // Function to auto-scale a shape so the largest dimension is 1
@@ -112,6 +113,7 @@ export default function ShapeSelector({
   onSvgPreviewChange,
   originalShape,
   onOriginalShapeChange,
+  onFilenameChange,
 }: ShapeSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -129,6 +131,10 @@ export default function ShapeSelector({
   ) => {
     const file = event.target.files?.[0];
     if (!file || !file.type.includes("svg")) return;
+
+    // Store filename (remove .svg extension and add .glb)
+    const baseFilename = file.name.replace(/\.svg$/i, '');
+    onFilenameChange(`${baseFilename}.glb`);
 
     const text = await file.text();
     const newShape = svgToShape(text);

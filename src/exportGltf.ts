@@ -12,6 +12,7 @@ import { transformGltf } from "./transformGltf";
 
 interface ExportOptions {
   maxTextureSize?: number;
+  filename?: string;
 }
 
 export async function exportGltf(meshRef: React.RefObject<Mesh>, options: ExportOptions = {}) {
@@ -65,7 +66,7 @@ export async function exportGltf(meshRef: React.RefObject<Mesh>, options: Export
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "token.glb";
+        a.download = options.filename || "token.glb";
         a.click();
         URL.revokeObjectURL(url);
 

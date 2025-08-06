@@ -194,7 +194,12 @@ function ShapeSection({
   onSettingsChange,
   shape,
   onShapeChange,
-}: SectionProps & { shape: Shape; onShapeChange: (shape: Shape) => void }) {
+  onFilenameChange,
+}: SectionProps & {
+  shape: Shape;
+  onShapeChange: (shape: Shape) => void;
+  onFilenameChange: (filename: string) => void;
+}) {
   const [expanded, setExpanded] = useState(true);
   const [svgPreview, setSvgPreview] = useState<string>("/star.svg");
   const [originalShape, setOriginalShape] = useState<Shape | null>(null);
@@ -245,6 +250,7 @@ function ShapeSection({
         onSvgPreviewChange={setSvgPreview}
         originalShape={originalShape}
         onOriginalShapeChange={setOriginalShape}
+        onFilenameChange={onFilenameChange}
       />
 
       <div className="field">
@@ -923,6 +929,8 @@ export default function Settings({
   shape,
   onShapeChange,
 }: SettingsProps) {
+  const [filename, setFilename] = useState<string>("star.glb");
+
   return (
     <div className="config">
       <ShapeSection
@@ -930,6 +938,7 @@ export default function Settings({
         onSettingsChange={onSettingsChange}
         shape={shape}
         onShapeChange={onShapeChange}
+        onFilenameChange={setFilename}
       />
 
       <BevelSection settings={settings} onSettingsChange={onSettingsChange} />
@@ -947,7 +956,10 @@ export default function Settings({
         <button
           type="button"
           onClick={() =>
-            exportGltf(meshRef, { maxTextureSize: settings.maxTextureSize })
+            exportGltf(meshRef, {
+              maxTextureSize: settings.maxTextureSize,
+              filename,
+            })
           }
         >
           Download file
