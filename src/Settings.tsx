@@ -116,7 +116,7 @@ export const defaultSettings = {
   bevelSize: 0.02,
   bevelOffset: -0.02,
   bevelSegments: 4,
-  maxSmoothAngle: Math.PI/2,
+  maxSmoothAngle: Math.PI,
   previewColor: colors[3].value,
   showBackgroundShape: false,
   cleanupMethod: 1,
@@ -139,6 +139,8 @@ export const defaultSettings = {
   reflectivity: 0.35,
   materialInputType: "range",
   maxTextureSize: 256,
+  textureScale: 2,
+  edgeTextureScale: 2,
   textureUrls: [
     "/wood_basecolor.png",
     "/wood_normals.png",
@@ -766,6 +768,26 @@ function TexturesSection({ settings, onSettingsChange }: SectionProps) {
         </div>
       </div>
 
+            <div className="field">
+        <label>Texture Scale:</label>
+        <input
+          type="number"
+          min={0.1}
+          max={10}
+          step={0.1}
+          value={settings.textureScale}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              textureScale: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Scale factor for texture repetition. Higher values = more repetitions.
+        </div>
+      </div>
+
       {/* Edge Textures Section */}
       <div>
         <h5 style={{ margin: "0 0 5px 0", fontSize: "14px" }}>Edge</h5>
@@ -789,6 +811,25 @@ function TexturesSection({ settings, onSettingsChange }: SectionProps) {
             onFileChange={(file) => handleFileChange(3, file)}
             onDelete={() => handleDelete(3)}
           />
+        </div>
+        <div className="field" style={{ marginTop: "10px" }}>
+          <label>Edge Texture Scale:</label>
+          <input
+            type="number"
+            min={0.1}
+            max={10}
+            step={0.1}
+            value={settings.edgeTextureScale}
+            onChange={(e) =>
+              onSettingsChange({
+                ...settings,
+                edgeTextureScale: parseFloat(e.target.value),
+              })
+            }
+          />
+          <div className="description">
+            Scale factor for edge texture repetition. Uses main texture scale if edge textures are undefined.
+          </div>
         </div>
       </div>
 

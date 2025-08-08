@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 // Expected hashes for downloaded GLTF files
 const EXPECTED_HASHES = {
-  'star.glb': '0e7c449231e9966782d95845be131929fe6796497832d1856d03ef10e32b6d1c',
+  'star.glb': '42101e048f6d92df7cc31f5446fcd18373568f4aad03de536020788be5514f25',
   'test-circle.glb': 'd2758079423e59a7d82aa65d4c481261cee549a0e46a97b7a1d72c34bf5098bd'
 };
 

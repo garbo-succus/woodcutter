@@ -32,12 +32,14 @@ interface MaterialProps extends ComponentProps<"meshPhysicalMaterial"> {
   mapSrc?: string;
   normalMapSrc?: string;
   iridescenceThickness: number;
+  textureScale: number;
 }
 
 const Material = ({
   mapSrc = EMPTY_TEXTURE_URL,
   normalMapSrc = EMPTY_TEXTURE_URL,
   iridescenceThickness,
+  textureScale,
   ...props
 }: MaterialProps) => {
   const [map, normalMap] = useLoader(TextureLoader, [mapSrc, normalMapSrc]);
@@ -46,9 +48,9 @@ const Material = ({
   useEffect(() => {
     [map, normalMap].forEach((texture) => {
       texture.wrapS = texture.wrapT = 1000; // RepeatWrapping
-      texture.repeat.set(2, 2);
+      texture.repeat.set(textureScale, textureScale);
     });
-  }, [map, normalMap]);
+  }, [map, normalMap, textureScale]);
 
   return (
     <meshPhysicalMaterial
@@ -105,6 +107,7 @@ const ExtrudedShape = forwardRef<Mesh, ExtrudedShapeProps>(
             specularColor={settings.specularColor}
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
+            textureScale={settings.textureScale}
           />
           <Material
             attach={"material-1"}
@@ -136,6 +139,7 @@ const ExtrudedShape = forwardRef<Mesh, ExtrudedShapeProps>(
             specularColor={settings.specularColor}
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
+            textureScale={showEdgeTextures ? settings.edgeTextureScale : settings.textureScale}
           />
         </mesh>
         {settings.showBackgroundShape && (
