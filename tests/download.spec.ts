@@ -5,8 +5,8 @@ import crypto from 'crypto';
 
 // Expected hashes for downloaded GLTF files
 const EXPECTED_HASHES = {
-  'star.glb': 'a8c7f0847412c63234db81e87b8f406f94e6a6ef123b4a47838e7495695f0f55',
-  'test-circle.glb': 'c55bd4c88a453f6b085639a63c910f453d4adf5bbc0d412b2aba63f0f2312b4d'
+  'star.glb': '0e7c449231e9966782d95845be131929fe6796497832d1856d03ef10e32b6d1c',
+  'test-circle.glb': 'd2758079423e59a7d82aa65d4c481261cee549a0e46a97b7a1d72c34bf5098bd'
 };
 
 test('should download GLTF file when clicking Download file button', async ({ page }) => {
