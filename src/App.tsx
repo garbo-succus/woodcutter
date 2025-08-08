@@ -16,7 +16,7 @@ function App() {
     <div className="app">
       <div className="main-content">
         <div className="sidebar">
-          <h1>Woodcutter</h1>
+          <h1><a href='https://probability.nz'>Woodcutter</a></h1>
           <p>Create 3D models from 2D cut-outs, such as board game pieces.</p>
           <Settings
             settings={settings}
