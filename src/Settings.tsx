@@ -139,6 +139,7 @@ export const defaultSettings = {
   specularColor: "#FFFFFF",
   thickness: 0,
   reflectivity: 0.35,
+  opacity: 1,
   materialInputType: "range",
   maxTextureSize: 256,
   textureScale: 2,
@@ -549,6 +550,39 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
         />
         <div className="description">
           Volume thickness for subsurface scattering effects.
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+function TransparencySection({ settings, onSettingsChange }: SectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title="Transparency"
+      isExpanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      type="h4"
+    >
+      <div className="field">
+        <label>Opacity:</label>
+        <input
+          type={settings.materialInputType}
+          min={0.05}
+          max={1}
+          step={0.05}
+          value={settings.opacity}
+          onChange={(e) =>
+            onSettingsChange({
+              ...settings,
+              opacity: parseFloat(e.target.value),
+            })
+          }
+        />
+        <div className="description">
+          Makes model see-through.
         </div>
       </div>
     </CollapsibleSection>
@@ -1041,6 +1075,11 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
           onSettingsChange={onSettingsChange}
         />
       )}
+
+      <TransparencySection
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+      />
 
       <SheenSection settings={settings} onSettingsChange={onSettingsChange} />
 

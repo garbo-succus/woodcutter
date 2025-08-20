@@ -57,7 +57,9 @@ const Material = ({
       {...props}
       map={map}
       normalMap={normalMap}
-      side={props.transmission === 0 ? FrontSide : DoubleSide}
+      side={props.transmission === 0 && props.opacity === 1 ? FrontSide : DoubleSide}
+      transparent={props.opacity !== undefined && props.opacity < 1}
+      opacity={props.opacity}
       iridescenceThicknessRange={[0, iridescenceThickness]}
     />
   );
@@ -108,6 +110,7 @@ const ExtrudedShape = forwardRef<Mesh, ExtrudedShapeProps>(
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
             textureScale={settings.textureScale}
+            opacity={settings.opacity}
           />
           <Material
             attach={"material-1"}
@@ -140,6 +143,7 @@ const ExtrudedShape = forwardRef<Mesh, ExtrudedShapeProps>(
             thickness={settings.thickness}
             reflectivity={settings.reflectivity}
             textureScale={showEdgeTextures ? settings.edgeTextureScale : settings.textureScale}
+            opacity={settings.opacity}
           />
         </mesh>
         {settings.showBackgroundShape && (
