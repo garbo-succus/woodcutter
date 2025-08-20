@@ -120,6 +120,8 @@ export const defaultSettings = {
   previewColor: colors[3].value,
   showBackgroundShape: false,
   cleanupMethod: 1,
+  // Feature flag for transmission - disabled due to models using transmission having bad performance
+  enableTransmission: false,
   clearcoat: 1,
   clearcoatRoughness: 0.15,
   roughness: 0,
@@ -465,7 +467,7 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
 
   return (
     <CollapsibleSection
-      title="Transparency"
+      title="Transmission"
       isExpanded={expanded}
       onToggle={() => setExpanded(!expanded)}
       type="h4"
@@ -486,7 +488,7 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
           }
         />
         <div className="description">
-          Makes the surface translucent or transparent.
+          Makes the surface translucent or transmissive.
         </div>
       </div>
 
@@ -506,7 +508,7 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
           }
         />
         <div className="description">
-          Creates prismatic color separation in transparent materials.
+          Creates prismatic color separation in transmissive materials.
         </div>
       </div>
 
@@ -526,7 +528,7 @@ function TransmissionSection({ settings, onSettingsChange }: SectionProps) {
           }
         />
         <div className="description">
-          Controls light bending through transparent materials.
+          Controls light bending through transmissive materials.
         </div>
       </div>
 
@@ -1033,10 +1035,12 @@ function MaterialSection({ settings, onSettingsChange }: SectionProps) {
         onSettingsChange={onSettingsChange}
       />
 
-      <TransmissionSection
-        settings={settings}
-        onSettingsChange={onSettingsChange}
-      />
+      {settings.enableTransmission && (
+        <TransmissionSection
+          settings={settings}
+          onSettingsChange={onSettingsChange}
+        />
+      )}
 
       <SheenSection settings={settings} onSettingsChange={onSettingsChange} />
 
